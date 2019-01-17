@@ -1,17 +1,17 @@
 from setuptools import setup, Extension
-from Cython.Distutils import build_ext
-from Cython.Build import cythonize
+# from Cython.Distutils import build_ext
+# from Cython.Build import cythonize
 
 
-ext_modules = cythonize(Extension("ndmg.graph.zindex", # the extension name
-                                  sources=["ndmg/graph/zindex.pyx"],
-                                  include_dirs=['.'],
-                                  language="c"))
+# ext_modules = cythonize(Extension("ndmg.graph.zindex", # the extension name
+#                                   sources=["ndmg/graph/zindex.pyx"],
+#                                   include_dirs=['.'],
+#                                   language="c"))
 VERSION="0.1.1"
 
 setup(
     name='ndmg',
-    ext_modules = ext_modules,
+    # ext_modules = ext_modules,
     packages=[
         'ndmg',
         'ndmg.preproc',
@@ -61,7 +61,7 @@ setup(
         'boto3',
         'matplotlib==1.5.3',
         'plotly==1.12.1',
-        'cython',
+        # 'cython',
         'pybids>=0.6.4'
     ]
 )

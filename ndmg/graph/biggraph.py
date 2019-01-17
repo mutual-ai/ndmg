@@ -28,7 +28,7 @@ import networkx as nx
 import nibabel as nb
 import ndmg
 import time
-from ndmg.graph.zindex import XYZMorton
+# from ndmg.graph.zindex import XYZMorton
 import os
 
 
@@ -47,45 +47,47 @@ class biggraph(object):
         self.edge_dict = defaultdict(int)
         pass
 
-    def make_graph(self, streamlines, attr=None):
-        """
-        Takes streamlines and produces a graph
+# TODO: Figure out how to make this C code work with ndmg
 
-        **Positional Arguments:**
+    # def make_graph(self, streamlines, attr=None):
+    #     """
+    #     Takes streamlines and produces a graph
 
-                streamlines:
-                    - Fiber streamlines either file or array in a dipy EuDX
-                      or compatible format.
-        """
-        nlines = np.shape(streamlines)[0]
-        print("# of Streamlines: " + str(nlines))
+    #     **Positional Arguments:**
 
-        print_id = np.max((int(nlines*0.05), 1))  # in case nlines*.05=0
-        for idx, streamline in enumerate(streamlines):
-            if (idx % print_id) == 0:
-                print(idx)
+    #             streamlines:
+    #                 - Fiber streamlines either file or array in a dipy EuDX
+    #                   or compatible format.
+    #     """
+    #     nlines = np.shape(streamlines)[0]
+    #     print("# of Streamlines: " + str(nlines))
+
+    #     print_id = np.max((int(nlines*0.05), 1))  # in case nlines*.05=0
+    #     for idx, streamline in enumerate(streamlines):
+    #         if (idx % print_id) == 0:
+    #             print(idx)
  
-            points = np.round(streamline).astype(int)
-            p = set()
-            for point in points:
-                try:
-                    loc = XYZMorton(tuple(point))
-                except IndexError:
-                    pass
-                else:
-                    pass
+    #         points = np.round(streamline).astype(int)
+    #         p = set()
+    #         for point in points:
+    #             try:
+    #                 loc = XYZMorton(tuple(point))
+    #             except IndexError:
+    #                 pass
+    #             else:
+    #                 pass
 
-                if loc:
-                    p.add(loc)
+    #             if loc:
+    #                 p.add(loc)
 
-            edges = combinations(p, 2)
-            for edge in edges:
-                # use string here for overflow issues
-                lst = tuple([str(node) for node in edge])
-                self.edge_dict[tuple(sorted(lst))] += 1
+    #         edges = combinations(p, 2)
+    #         for edge in edges:
+    #             # use string here for overflow issues
+    #             lst = tuple([str(node) for node in edge])
+    #             self.edge_dict[tuple(sorted(lst))] += 1
 
-        self.edge_list = [(k[0], k[1], v) for k, v in self.edge_dict.items()]
-        pass
+    #     self.edge_list = [(k[0], k[1], v) for k, v in self.edge_dict.items()]
+    #     pass
 
     def get_graph(self):
         """
