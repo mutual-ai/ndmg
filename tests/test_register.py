@@ -34,18 +34,30 @@ def test_register():
     - Make the above more specific as I learn more about unit testing
     """
 
-    # Assert FSL exists
+    # TODO: Assert FSL exists
     # assert FSLDIR, "FSLDIR environment variable not set!"
 
     reg = register.register(outdir_base_in, dwi_in, t1w_in, vox_size, simple=True)
 
     # Assert both of the output directories have been made
-    assert os.path.exists(os.path.join(reg.outdir_base, 'reg_a'))
-    assert os.path.exists(os.path.join(reg.outdir_base, 'reg_m'))
-    
-    # Assert that all of the default attributes of the reg object are the types I expect
-    assert type(reg.outdir) == dict
-    assert type(reg.outdir_base) == str
-    assert type(reg.simple) == bool
+    assert os.path.exists(os.path.join(reg.outdir_base, 'reg_a')), "reg_a not made"
+    assert os.path.exists(os.path.join(reg.outdir_base, 'reg_m')), "reg_m not made"
 
-    # register.register.gen_tissue(reg)
+    # test gen_tissue method
+    def test_gen_tissue():
+        pass
+
+    # test t1w2dwi_align method
+    def t1w2dwi_align():
+        pass
+
+    # test atlas2t1w2dwi_align method
+    def test_atlas2t1w2dwi_align():
+        pass
+
+    def test_tissue2dwi_align():
+        pass
+
+# Test epi_register class
+def test_epi_register():
+    pass
