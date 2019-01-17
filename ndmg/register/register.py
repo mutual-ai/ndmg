@@ -36,6 +36,14 @@ from ndmg.utils import reg_utils as mgru
 class register(object):
 
     def __init__(self, outdir_base_in, nodif_B0_mask, t1w_in, vox_size, simple):
+        """ 
+        Inputs:
+        - An output directory for the outputs of this function
+        - nodif_b0_mask : not sure what this is
+        - t1w_in : The actual 4D t1-weighted image we're working with.
+        - vox_size: The cubic dimensions of each voxel?
+        - simple: Unclear, but it's a boolean.
+        """
         self.simple = simple
         self.outdir_base = outdir_base_in
         self.outdir = dict()
@@ -49,6 +57,8 @@ class register(object):
             os.mkdir(self.outdir['reg_m'])
         except:
             pass
+
+        # Adding attributes to the register object. Most attributes are file directories.
         self.nodif_B0_mask = nodif_B0_mask
         self.t1w = t1w_in
         self.vox_size = vox_size
