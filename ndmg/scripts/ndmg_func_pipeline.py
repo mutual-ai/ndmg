@@ -133,7 +133,7 @@ def ndmg_func_worker(func, t1w, atlas, atlas_brain, atlas_mask, lv_mask,
         labels = [labels]
     connectomes = [namer.name_derivative(
         namer.dirs['output']['conn'][namer.get_label(lab)],
-        "{}_{}_measure-correlation.{}".format(namer.get_mod_source(),
+        "{}_{}_measure-correlation{}".format(namer.get_mod_source(),
             namer.get_label(lab), fmt)) for lab in labels]
 
     roi_ts = [namer.name_derivative(
