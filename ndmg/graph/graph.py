@@ -158,7 +158,7 @@ class graph(object):
         """
         if self.modal == 'dwi':
             self.g.graph['ecount'] = nx.number_of_edges(self.g)
-            nx.write_weighted_edgelist(self.g, graphname, delimiter=",")
+            nx.write_weighted_edgelist(self.g, graphname, delimiter=" ")
 
         elif self.modal == 'func':
             np.savetxt(graphname, self.g, comments='', delimiter=',',
