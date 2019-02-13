@@ -1,10 +1,12 @@
 """ 
 Discriminability code. Takes in output of ndmg participant-level analysis.
 """
-
+#%%
 import os
+import sys
 
-def get_graph_files():
+#%%
+def get_graph_files(ndmg_participant_dir):
     """
     Input: ndmg participant-level analysis output directory.
     Returns: folder locations for all graph outputs
@@ -26,3 +28,12 @@ def matrix_and_vector_from_graph():
     Returns: the tuple (matrix, target_vector).
     """
     pass
+
+
+#%%
+def main():
+    data = 'scratch/02-12-NKI-ac0bc77-3'
+    get_graph_files(data)
+
+if __name__ == "__main__":
+    main()
