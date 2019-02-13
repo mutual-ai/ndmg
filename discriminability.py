@@ -2,11 +2,16 @@
 Discriminability code. Takes in output of ndmg participant-level analysis.
 """
 
-# TODO: write tests for each of these
+# TODO: write test for get_graph_files
+# TODO: write test for numpy_from_output_graph
+# TODO: write test for matrix_and_vector_from_graph
 
+data = "scratch/02-12-NKI-ac0bc77-3"
+x = get_graph_files(data, "desikan")
 
 #%%
 import os, sys, re
+import numpy as np, networkx as nx
 
 #%%
 def get_graph_files(ndmg_participant_dir, atlas):
@@ -27,12 +32,8 @@ def get_graph_files(ndmg_participant_dir, atlas):
     return out
 
 
-data = "scratch/02-12-NKI-ac0bc77-3"
-x = get_graph_files(data, "desikan")
-x
-
 #%%
-def numpy_from_graph():
+def numpy_from_output_graph(input_csv_file):
     """ 
     Input: location of the .csv file for a single ndmg graph output
     Returns: numpy array from that .csv file
@@ -54,9 +55,11 @@ def main():
     # TODO: input participant dir, output matrix_and_vector_from_graph() csv files
     # TODO: write assertion tests. Do they normally go here? no idea. Putting them here for now.
     assert all(
-        [os.path.exists(filename) for filename in get_graph_files(data)]
+        [os.path.exists(filename) for filename in get_graph_files(data, "desikan")]
     )  # Everything in output for get_graph_files is a real path
-    pass
+    data = "scratch/02-12-NKI-ac0bc77-3"
+    x = get_graph_files(data, "desikan")
+    print(x)
 
 
 if __name__ == "__main__":
