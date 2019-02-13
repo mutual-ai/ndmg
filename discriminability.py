@@ -1,5 +1,6 @@
 """ 
 Discriminability code. Takes in output of ndmg participant-level analysis.
+Currently in the root directory for safekeeping, will be moved to a better home once it's done
 """
 
 # TODO: write test for get_graph_files
@@ -38,9 +39,12 @@ def numpy_from_output_graph(input_csv_file):
     Input: location of the .csv file for a single ndmg graph output
     Returns: numpy array from that .csv file
     """
-    pass
+    print(input_csv_file)
 
 
+numpy_from_output_graph(x[0])
+
+#%%
 def matrix_and_vector_from_graph():
     """ 
     Input: List of graph output locations
