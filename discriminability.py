@@ -3,12 +3,8 @@ Discriminability code. Takes in output of ndmg participant-level analysis.
 Currently in the root directory for safekeeping, will be moved to a better home once it's done
 """
 
-# TODO: write test for get_graph_files
-# TODO: write test for numpy_from_output_graph
-# TODO: write test for matrix_and_vector_from_graph
-
-data = "scratch/02-12-NKI-ac0bc77-3"
-x = get_graph_files(data, "desikan")
+data = "scratch/02-12-NKI-ac0bc77-3"  # TODO: delete
+x = get_graph_files(data, "desikan")  # TODO: delete
 
 #%%
 import os, sys, re
@@ -28,31 +24,42 @@ def get_graph_files(ndmg_participant_dir, atlas):
         )  # Returns list of absolute path files in ndmg_participant_dir that end in '_adj.csv'.
         for directory, _, filenames in os.walk(d)
         for filename in filenames
-        if (filename.endswith("_adj.csv") and atlas in filename)
+        if (
+            filename.endswith("_adj.csv") and atlas in filename
+        )  # Soft check on filenames. Will break if filename has 'atlas' and '_adj.csv' in it but is not the adjacency matrix for that atlas.
     ]
     return out
 
 
 #%%
+
+
 def numpy_from_output_graph(input_csv_file):
     """ 
     Input: location of the .csv file for a single ndmg graph output
     Returns: numpy array from that .csv file
     """
-    print(input_csv_file)
+    # convert input from csv file to numpy matrix, then return
+    out = nx.read_weighted_edgelist(input_csv_file, delimiter=",")
+    out = nx.to_numpy_matrix(out)
+    return out
 
-
-numpy_from_output_graph(x[0])
 
 #%%
-def matrix_and_vector_from_graph():
+def matrix_and_vector_from_graphs(ndmg_participant_dir, atlas):
     """ 
+    The main worker function. Big loop. Each loop iteration adds a row to out_matrix, and adds the subject name to out_target_vector.
+    
+    --------------
     Input: List of graph output locations
-    Returns: the tuple (matrix, target_vector).
+    Returns: the tuple (out_matrix, out_target_vector).
     """
-    pass
+    out_matrix = np.ndarray
+    out_target_vector = []
+    return (out_matrix, out_target_vector)
 
 
+matrix_and_vector_from_graphs(data, "desikan")
 #%%
 def main():
     data = "scratch/02-12-NKI-ac0bc77-3"
