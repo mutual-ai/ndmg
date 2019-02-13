@@ -37,7 +37,7 @@ def get_graph_files(ndmg_participant_dir, atlas):
 def numpy_from_output_graph(input_csv_file):
     """ 
     Input: location of the .csv file for a single ndmg graph output
-    Returns: numpy array from that .csv file
+    Returns: numpy matrix from that .csv file
     """
     # convert input from csv file to numpy matrix, then return
     out = nx.read_weighted_edgelist(input_csv_file, delimiter=",")
@@ -47,6 +47,7 @@ def numpy_from_output_graph(input_csv_file):
 
 #%%
 def matrix_and_vector_from_graphs(ndmg_participant_dir, atlas):
+    # TODO: Figure out if there's a more computationally efficient way than building from a loop, that still absolutely guarentees that the target vector and corresponding matrix row are from the same subject
     """ 
     The main worker function. Big loop. Each loop iteration adds a row to out_matrix, and adds the subject name to out_target_vector.
     
@@ -56,6 +57,11 @@ def matrix_and_vector_from_graphs(ndmg_participant_dir, atlas):
     """
     out_matrix = np.ndarray
     out_target_vector = []
+    graphs = get_graph_files(ndmg_participant_dir, atlas)
+    rgx = r"(sub-)([a-zA-Z0-9]*)"  # to be used for grabbing the subject name
+    for filename in graphs:  # for each .csv adj. matrix
+        mat = numpy_from_output_graph(filename)  # make a numpy array
+        sub_and_session = ""  # get the thing to append to the target vector
     return (out_matrix, out_target_vector)
 
 
