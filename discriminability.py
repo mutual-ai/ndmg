@@ -29,8 +29,6 @@ def get_graph_files(ndmg_participant_dir, atlas):
 
 
 #%%
-
-
 def numpy_from_output_graph(input_csv_file):
     """ 
     Input: location of the .csv file for a single ndmg graph output
