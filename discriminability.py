@@ -3,9 +3,6 @@ Discriminability code. Takes in output of ndmg participant-level analysis.
 Currently in the root directory for safekeeping, will be moved to a better home once it's done
 """
 
-data = "scratch/02-12-NKI-ac0bc77-3"  # TODO: delete
-x = get_graph_files(data, "desikan")  # TODO: delete
-
 #%%
 import os, sys, re
 import numpy as np, networkx as nx
@@ -37,12 +34,12 @@ def get_graph_files(ndmg_participant_dir, atlas):
 def numpy_from_output_graph(input_csv_file):
     """ 
     Input: location of the .csv file for a single ndmg graph output
-    Returns: numpy matrix from that .csv file
+    Returns: Vectorized numpy matrix from that .csv file
     """
     # convert input from csv file to numpy matrix, then return
     out = nx.read_weighted_edgelist(input_csv_file, delimiter=",")
     out = nx.to_numpy_matrix(out)
-    return out
+    return np.array(out)
 
 
 #%%
@@ -55,28 +52,34 @@ def matrix_and_vector_from_graphs(ndmg_participant_dir, atlas):
     Input: List of graph output locations
     Returns: the tuple (out_matrix, out_target_vector).
     """
-    out_matrix = np.ndarray
+    out_matrix = np.empty((1, 70 * 70))  # TODO: make this dynamic to the atlas
     out_target_vector = []
     graphs = get_graph_files(ndmg_participant_dir, atlas)
-    rgx = r"(sub-)([a-zA-Z0-9]*)"  # to be used for grabbing the subject name
-    for filename in graphs:  # for each .csv adj. matrix
+    rgx = re.compile(
+        r"(sub-)([a-zA-Z0-9]*)"
+    )  # to be used for grabbing the subject name
+    for filename in graphs:  # main loop we care about
         mat = numpy_from_output_graph(filename)  # make a numpy array
-        sub_and_session = ""  # get the thing to append to the target vector
-    return (out_matrix, out_target_vector)
+        if mat.shape == (
+            70,
+            70,
+        ):  # TODO: make this dynamic to the atlas, currently it's only for desikan
+            sub_and_session = "".join(rgx.search(filename).groups())
+            out_target_vector.append(sub_and_session)  # update out_target_vector
+            out_matrix = np.append(
+                out_matrix, mat.flatten()[np.newaxis, :], axis=0
+            )  # This is gross but I don't currently know a better way to do it. Will also leave the first row as the remnants of np.empty()...
+    return (out_matrix[1:, :], out_target_vector)
 
 
-matrix_and_vector_from_graphs(data, "desikan")
 #%%
 def main():
     data = "scratch/02-12-NKI-ac0bc77-3"
     # TODO: input participant dir, output matrix_and_vector_from_graph() csv files
-    # TODO: write assertion tests. Do they normally go here? no idea. Putting them here for now.
-    assert all(
-        [os.path.exists(filename) for filename in get_graph_files(data, "desikan")]
-    )  # Everything in output for get_graph_files is a real path
-    data = "scratch/02-12-NKI-ac0bc77-3"
-    x = get_graph_files(data, "desikan")
-    print(x)
+    # TODO: write assertion tests. Not sure if they normally go here.
+    X, y = matrix_and_vector_from_graphs(data, "desikan")
+    print(type(X))
+    print(y)
 
 
 if __name__ == "__main__":
