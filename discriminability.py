@@ -77,9 +77,14 @@ def main():
     data = "scratch/02-12-NKI-ac0bc77-3"
     # TODO: input participant dir, output matrix_and_vector_from_graph() csv files
     # TODO: write assertion tests. Not sure if they normally go here.
-    X, y = matrix_and_vector_from_graphs(data, "desikan")
-    print(type(X))
-    print(y)
+    X, y = matrix_and_vector_from_graphs(
+        data, "desikan"
+    )  # just sticking this in a main function as a wrapper currently, will add functionality later
+    np.savetxt("{}_X.csv".format(data), X, fmt="%f", delimiter=",")  # save x csv
+
+    for i in y:  # make Y vector csv
+        with open("{}_y.csv".format(data), "a") as f:
+            f.write(i + "\n")
 
 
 if __name__ == "__main__":
