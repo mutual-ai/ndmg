@@ -107,6 +107,11 @@ class dmri_reg(object):
         # Use the probability maps to extract white matter mask
         mgru.probmap2mask(self.maps['wm_prob'], self.wm_mask_thr, 0.2)
         mgru.probmap2mask(self.maps['gm_prob'], self.gm_mask_thr, 0.2)
+
+	# FSL FIRST for subcortical parcellation
+	cmd='run_first_all -i ' + self.t1w2dwi + ' -o ' + self.namer.dirs['tmp']['reg_a'] + '/first'
+#        os.system(cmd)
+
         return
 
     def t1w2dwi_align(self):
@@ -210,12 +215,16 @@ class dmri_reg(object):
         cmd='fslmaths ' + self.dwi_aligned_atlas + ' -mas ' + self.nodif_B0_mask + ' ' + self.dwi_aligned_atlas
         os.system(cmd)
 
+	self.parc_mif = 'parc_' + self.atlas_name + '.mif'
+	cmd='mrconvert ' + self.dwi_aligned_atlas + ' ' + self.namer.dirs['output']['reg_anat'] + '/' + self.parc_mif + ' -strides ' + self.namer.dirs['tmp']['reg_a'] + '/T1w.mif --force'
+	os.system(cmd)
+
 	# Binarize atlas
         #self.t_img = load_img(self.dwi_aligned_atlas)
         #self.mask = math_img('img > 0', img=self.t_img)
         #self.mask.to_filename(self.dwi_aligned_atlas_mask)
 
-        return self.dwi_aligned_atlas
+        return self.parc_mif
 
     def tissue2dwi_align(self):
         """
@@ -253,9 +262,55 @@ class dmri_reg(object):
         mgru.applyxfm(self.nodif_B0, self.csf_mask, self.t1wtissue2dwi_xfm, self.csf_mask_dwi)
         mgru.applyxfm(self.nodif_B0, self.gm_mask, self.t1wtissue2dwi_xfm, self.gm_in_dwi)
         mgru.applyxfm(self.nodif_B0, self.wm_mask, self.t1wtissue2dwi_xfm, self.wm_in_dwi)	
+        #mgru.applyxfm(self.nodif_B0, self.gm_mask_thr, self.t1wtissue2dwi_xfm, self.gm_in_dwi_thr)
+        #mgru.applyxfm(self.nodif_B0, self.wm_mask_thr, self.t1wtissue2dwi_xfm, self.wm_in_dwi_thr)
 
-        mgru.applyxfm(self.nodif_B0, self.gm_mask_thr, self.t1wtissue2dwi_xfm, self.gm_in_dwi_thr)
-        mgru.applyxfm(self.nodif_B0, self.wm_mask_thr, self.t1wtissue2dwi_xfm, self.wm_in_dwi_thr)
+	cmd='mrconvert ' + self.t1w2dwi + ' ' + self.namer.dirs['output']['reg_anat'] + '/T1w.mif --force'
+	os.system(cmd)
+	cmd='mrconvert ' + self.csf_mask_dwi + ' ' + self.namer.dirs['output']['reg_anat'] + '/CSF.mif --force'
+	os.system(cmd)
+	cmd='mrconvert ' + self.gm_in_dwi + ' ' + self.namer.dirs['output']['reg_anat'] + '/GM.mif --force'
+	os.system(cmd)
+	cmd='mrconvert ' + self.wm_in_dwi + ' ' + self.namer.dirs['output']['reg_anat'] + '/WM.mif --force'
+	os.system(cmd)
+	cmd='mrconvert ' + self.nodif_B0_mask + ' ' + self.namer.dirs['output']['prep_dwi'] + '/MASK.mif --force'
+	os.system(cmd)
+
+        sgm_structures = [ 'L_Accu', 'R_Accu', 'L_Caud', 'R_Caud', 'L_Pall', 'R_Pall', 'L_Puta', 'R_Puta', 'L_Thal', 'R_Thal' ]
+        pve_image_list = [ ]
+        print('Generating partial volume images for SGM structures', len(sgm_structures))
+        for struct in sgm_structures:
+            pve_image_path = self.namer.dirs['tmp']['reg_a'] + '/mesh2voxel_' + struct + '.mif'
+            vtk_in_path = self.namer.dirs['tmp']['reg_a'] + '/first-' + struct + '_first.vtk'
+            vtk_temp_path = self.namer.dirs['tmp']['reg_a'] + '/' + struct + '.vtk'
+            cmd='meshconvert ' + vtk_in_path + ' ' + vtk_temp_path + ' -transform first2real ' + self.t1w2dwi + ' --force'
+            os.system(cmd)
+            cmd='mesh2voxel ' + vtk_temp_path + ' ' + self.t1w2dwi + ' ' + pve_image_path + ' --force'
+            os.system(cmd)
+            pve_image_list.append(pve_image_path)
+	
+        cmd='mrmath ' + ' '.join(pve_image_list) + ' sum - | mrcalc - 1.0 -min ' + self.namer.dirs['tmp']['reg_a'] + '/all_sgms.mif --force'
+        os.system(cmd)
+        cmd='mrthreshold ' + self.namer.dirs['output']['reg_anat'] + '/WM.mif - -abs 0.001 | maskfilter - connect - -connectivity | mrcalc 1 - 1 -gt -sub ' + self.namer.dirs['tmp']['reg_a'] + '/remove_unconnected_wm_mask.mif -datatype bit --force'
+        os.system(cmd)
+        cmd='mrcalc ' + self.namer.dirs['output']['reg_anat'] + '/CSF.mif ' + self.namer.dirs['tmp']['reg_a'] + '/remove_unconnected_wm_mask.mif -mult ' + self.namer.dirs['tmp']['reg_a'] + '/csf.mif --force'
+        os.system(cmd)
+        cmd='mrcalc 1.0 ' + self.namer.dirs['tmp']['reg_a'] + '/csf.mif -sub ' + self.namer.dirs['tmp']['reg_a'] + '/all_sgms.mif -min ' + self.namer.dirs['tmp']['reg_a'] + '/sgm.mif --force'
+        os.system(cmd)
+        cmd='mrcalc 1.0 ' + self.namer.dirs['tmp']['reg_a'] + '/csf.mif ' + self.namer.dirs['tmp']['reg_a'] + '/sgm.mif -add -sub ' + self.namer.dirs['output']['reg_anat'] + '/GM.mif ' + self.namer.dirs['output']['reg_anat'] + '/WM.mif -add -div ' + self.namer.dirs['tmp']['reg_a'] + '/multiplier.mif --force'
+        os.system(cmd)
+        cmd='mrcalc ' + self.namer.dirs['tmp']['reg_a'] + '/multiplier.mif -finite ' + self.namer.dirs['tmp']['reg_a'] + '/multiplier.mif 0.0 -if ' + self.namer.dirs['tmp']['reg_a'] + '/multiplier_noNAN.mif --force'
+        os.system(cmd)
+        cmd='mrcalc ' + self.namer.dirs['output']['reg_anat'] + '/GM.mif ' + self.namer.dirs['tmp']['reg_a'] + '/multiplier_noNAN.mif -mult ' + self.namer.dirs['tmp']['reg_a'] + '/remove_unconnected_wm_mask.mif -mult ' + self.namer.dirs['tmp']['reg_a'] + '/cgm.mif --force'
+        os.system(cmd)
+        cmd='mrcalc ' + self.namer.dirs['output']['reg_anat'] + '/WM.mif ' + self.namer.dirs['tmp']['reg_a'] + '/multiplier_noNAN.mif -mult ' + self.namer.dirs['tmp']['reg_a'] + '/remove_unconnected_wm_mask.mif -mult ' + self.namer.dirs['tmp']['reg_a'] + '/wm.mif --force'
+        os.system(cmd)
+        cmd='mrcalc 0 ' + self.namer.dirs['tmp']['reg_a'] + '/wm.mif -min ' + self.namer.dirs['tmp']['reg_a'] + '/path.mif --force'
+        os.system(cmd)
+        cmd='mrcat ' + self.namer.dirs['tmp']['reg_a'] + '/cgm.mif ' + self.namer.dirs['tmp']['reg_a'] + '/sgm.mif ' + self.namer.dirs['tmp']['reg_a'] + '/wm.mif ' + self.namer.dirs['tmp']['reg_a'] + '/csf.mif ' + self.namer.dirs['tmp']['reg_a'] + '/path.mif - -axis 3 | mrconvert - ' + self.namer.dirs['tmp']['reg_a'] + '/combined_precrop.mif -strides +2,+3,+4,+1 --force'
+        os.system(cmd)
+        cmd='mrmath ' + self.namer.dirs['tmp']['reg_a'] + '/combined_precrop.mif sum - -axis 3 | mrthreshold - - -abs 0.5 | mrcrop ' + self.namer.dirs['tmp']['reg_a'] + '/combined_precrop.mif ' + self.namer.dirs['output']['reg_anat'] + '/5TT.mif -mask - --force'
+        os.system(cmd)
 
         # Threshold WM to binary in dwi space
         self.t_img = load_img(self.wm_in_dwi)
@@ -271,18 +326,14 @@ class dmri_reg(object):
         print('Masking CSF with ventricle mask...')
         cmd='fslmaths ' + self.vent_mask_dwi + ' -bin ' + self.vent_mask_dwi
         os.system(cmd)
-	cmd='fslmaths ' + self.wm_in_dwi_bin + ' -binv ' + self.wm_in_dwi_binv
-        os.system(cmd)
-        cmd='fslmaths ' + self.gm_in_dwi_bin + ' -binv ' + self.gm_in_dwi_binv
-        os.system(cmd)
-        cmd='fslmaths ' + self.csf_mask_dwi + ' -mas ' + self.vent_mask_dwi + ' -mas ' + self.gm_in_dwi_binv + ' ' + self.vent_csf_in_dwi
+        cmd='fslmaths ' + self.csf_mask_dwi + ' -mas ' + self.vent_mask_dwi + ' ' + self.vent_csf_in_dwi
         os.system(cmd)
         cmd='fslmaths ' + self.vent_csf_in_dwi + ' -bin ' + self.vent_csf_in_dwi_bin
         os.system(cmd)
 
 	# Create gm-wm interface image
-        cmd = 'fslmaths ' + self.gm_in_dwi_thr + ' -mul ' + self.wm_in_dwi_thr + ' -mas ' + self.nodif_B0_mask + ' -bin ' + self.wm_gm_int_in_dwi
-        os.system(cmd)
+        #cmd = 'fslmaths ' + self.gm_in_dwi_thr + ' -mul ' + self.wm_in_dwi_thr + ' -mas ' + self.nodif_B0_mask + ' -bin ' + self.wm_gm_int_in_dwi
+        #os.system(cmd)
 
         return
 

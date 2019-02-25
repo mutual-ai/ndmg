@@ -106,6 +106,21 @@ class run_track(object):
              raise ValueError('Error: Either no seeds supplied, or no valid seeds found in white-matter interface')
         return tracks
 
+    def prep_tracking_mrtrix(self):
+	print('Estimating tissue response functions for spherical deconvolution')
+	#cmd='dwi2response msmt_5tt DWI.mif 5TT.mif response_wm.txt response_gm.txt response_csf.txt -mask MASK.mif --force'
+	cmd='dwi2response dhollander DWI.mif response_wm.txt response_gm.txt response_csf.txt -mask MASK.mif'
+	os.system(cmd)
+
+	cmd='dwi2fod msmt_csd DWI.mif response_wm.txt FOD_WM.mif response_csf.txt FOD_CSF.mif -mask MASK.mif -lmax 10,0 --force'
+	os.system(cmd)
+
+	cmd='mrconvert WM_FODs.mif - -coord 3 0 | mrcat CSF.mif GM.mif - tissueRGB.mif -axis 3 --force'
+	os.system(cmd)
+	#cmd='mrview tissueRGB.mif -odf.load_sh WM_FODs.mif'
+	#os.system(cmd)
+	return
+
     def prep_tracking(self):
 	from dipy.tracking.local import ActTissueClassifier
 	from dipy.tracking.local import BinaryTissueClassifier
