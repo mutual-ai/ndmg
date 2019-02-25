@@ -237,14 +237,15 @@ def ndmg_dwi_worker(dwi, bvals, bvecs, t1w, atlas, mask, labels, outdir,
     # ------- Connectome Estimation --------------------------------- #
     # Generate graphs from streamlines for each parcellation
     for idx, label in enumerate(labels):
-#        print("Generating graph for {} parcellation...".format(label))
-#	try:
+        print("Generating graph for {} parcellation...".format(label))
+	try:
 	    # align atlas to t1w to dwi
 	    print("%s%s" % ('Applying native-space alignment to ', labels[idx]))
             parc_mif = reg.atlas2t1w2dwi_align(labels[idx])
 	    print('Aligned Atlas: ' + label)
             print('Combining whole-brain tractogram with grey matter parcellation to produce the connectome...')
             cmd='tck2connectome ' + namer.dirs['output']['fiber'] + '/tractogram.tck ' + parc_mif + ' ' + namer.dirs['output']['conn'].values()[0] + '/connectome.csv -tck_weights_in ' + namer.dirs['output']['fiber'] + '/weights.csv -out_assignments ' + namer.dirs['output']['conn'].values()[0] + '/assignments.csv --force'
+	    print(cmd)
             os.system(cmd)
             cmd='tck2connectome ' + namer.dirs['output']['fiber'] + '/tractogram.tck ' + parc_mif + ' ' + namer.dirs['output']['conn'].values()[0] + '/meanlength.csv -tck_weights_in ' + namer.dirs['output']['fiber'] + '/weights.csv -scale_length -stat_edge mean --force'
             os.system(cmd)
@@ -259,9 +260,9 @@ def ndmg_dwi_worker(dwi, bvals, bvecs, t1w, atlas, mask, labels, outdir,
 	    #g1.make_regressors()
             #g1.summary()
             #g1.save_graph(connectomes[idx])
-#	except:
-#	    print(label + ' FAILED. Skipping...')
-#	    continue
+	except:
+	    print(label + ' FAILED. Skipping...')
+	    continue
 
     exe_time = datetime.now() - startTime
     qc_dwi.save(qc_stats, exe_time)

@@ -210,8 +210,8 @@ class dmri_reg(object):
 
         # Set intensities to int
         self.atlas_img = nib.load(self.dwi_aligned_atlas)
-        self.atlas_data = self.atlas_img.get_data()
-        nib.save(nib.Nifti1Image(self.atlas_data.astype('int'), affine=self.atlas_img.affine, header=self.atlas_img.header), self.dwi_aligned_atlas)
+        self.atlas_data = self.atlas_img.get_data().astype('int')
+        nib.save(nib.Nifti1Image(self.atlas_data.astype(np.int32), affine=self.atlas_img.affine, header=self.atlas_img.header), self.dwi_aligned_atlas)
         cmd='fslmaths ' + self.dwi_aligned_atlas + ' -mas ' + self.nodif_B0_mask + ' ' + self.dwi_aligned_atlas
         os.system(cmd)
 
@@ -224,7 +224,7 @@ class dmri_reg(object):
         #self.mask = math_img('img > 0', img=self.t_img)
         #self.mask.to_filename(self.dwi_aligned_atlas_mask)
 
-        return self.parc_mif
+        return self.namer.dirs['output']['reg_anat'] + '/' + self.parc_mif
 
     def tissue2dwi_align(self):
         """
