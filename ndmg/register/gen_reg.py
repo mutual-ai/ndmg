@@ -216,7 +216,7 @@ class dmri_reg(object):
         os.system(cmd)
 
 	self.parc_mif = 'parc_' + self.atlas_name + '.mif'
-	cmd='mrconvert ' + self.dwi_aligned_atlas + ' ' + self.namer.dirs['output']['reg_anat'] + '/' + self.parc_mif + ' -strides ' + self.namer.dirs['tmp']['reg_a'] + '/T1w.mif --force'
+	cmd='mrconvert ' + self.dwi_aligned_atlas + ' ' + self.namer.dirs['output']['reg_anat'] + '/' + self.parc_mif + ' -datatype uint32 --force'
 	os.system(cmd)
 
 	# Binarize atlas

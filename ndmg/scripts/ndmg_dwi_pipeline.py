@@ -217,47 +217,51 @@ def ndmg_dwi_worker(dwi, bvals, bvecs, t1w, atlas, mask, labels, outdir,
 	#os.system(cmd)
 
 	cmd='mrconvert ' + namer.dirs['output']['tensor'] + '/FOD_WM.mif - -coord 3 0 | mrcat ' + namer.dirs['output']['reg_anat'] + '/CSF.mif ' + namer.dirs['output']['reg_anat'] + '/GM.mif - ' + namer.dirs['output']['reg_anat'] + '/tissueRGB.mif -axis 3 --force'
-	os.system(cmd)
+#	os.system(cmd)
 
         print('Performing whole-brain fibre-tracking...')
         num_streamlines = 5000000
         cmd='tckgen ' + namer.dirs['output']['tensor'] + '/FOD_WM.mif ' + namer.dirs['output']['fiber'] + '/tractogram.tck -act ' + namer.dirs['output']['reg_anat'] + '/5TT.mif -backtrack -crop_at_gmwmi -maxlength 250 -power 0.33 -select ' + str(num_streamlines) + ' -seed_dynamic ' + namer.dirs['output']['tensor'] + '/FOD_WM.mif --force'
-        os.system(cmd)
+#        os.system(cmd)
 
         print('Running the SIFT2 algorithm to assign weights to individual streamlines...')
         cmd='tcksift2 ' + namer.dirs['output']['fiber'] + '/tractogram.tck ' + namer.dirs['output']['tensor'] + '/FOD_WM.mif ' + namer.dirs['output']['fiber'] + '/weights.csv -act ' + namer.dirs['output']['reg_anat'] + '/5TT.mif -out_mu ' + namer.dirs['output']['reg_anat'] + '/mu.txt -fd_scale_gm --force'
-        os.system(cmd)
+#        os.system(cmd)
 
         print('Producing Track Density Images (TDIs)')
-        with open('mu.txt', 'r') as f:
+        with open(namer.dirs['output']['reg_anat'] + '/mu.txt', 'r') as f:
           mu = float(f.read())
-        cmd='tckmap ' + namer.dirs['output']['fiber'] + '/tractogram.tck -tck_weights_in ' + namer.dirs['output']['fiber'] + '/weights.csv -template ' + namer.dirs['output']['tensor'] + '/FOD_WM.mif -precise - | mrcalc - ' + str(mu) + ' -mult ' + namer.dirs['qa']['fiber'] + '/tdi_native.mif --force'
-        os.system(cmd)
+        cmd='tckmap ' + namer.dirs['output']['fiber'] + '/tractogram.tck -tck_weights_in ' + namer.dirs['output']['fiber'] + '/weights.csv -template ' + namer.dirs['output']['tensor'] + '/FOD_WM.mif -precise - | mrcalc - ' + str(mu) + ' -mult ' + namer.dirs['output']['fiber'] + '/tdi_native.mif --force'
+#        os.system(cmd)
 
-	sys.exit(0)
     # ------- Connectome Estimation --------------------------------- #
     # Generate graphs from streamlines for each parcellation
     for idx, label in enumerate(labels):
-        print("Generating graph for {} parcellation...".format(label))
-	try:
+#        print("Generating graph for {} parcellation...".format(label))
+#	try:
 	    # align atlas to t1w to dwi
 	    print("%s%s" % ('Applying native-space alignment to ', labels[idx]))
             parc_mif = reg.atlas2t1w2dwi_align(labels[idx])
 	    print('Aligned Atlas: ' + label)
-	    print('Combining whole-brain tractogram with grey matter parcellation to produce the connectome...')
-	    cmd='tck2connectome ' + namer.dirs['output']['fiber'] + '/tractogram.tck ' + namer.dirs['output']['reg_anat'] + '/' + parc_mif + ' ' + namer.dirs['output']['conn'] + '/' + connectomes[idx] + '/connectome.csv -tck_weights_in ' + namer.dirs['output']['fiber'] + '/weights.csv -out_assignments ' + namer.dirs['output']['conn'] + '/' + connectomes[idx] + '/assignments.csv --force'
-	    print(cmd)
-	    os.system(cmd)
-	    cmd='tck2connectome ' + namer.dirs['output']['fiber'] + '/tractogram.tck ' + namer.dirs['output']['reg_anat'] + '/' + parc_mif + ' ' + namer.dirs['output']['conn'] + '/' + connectomes[idx] + '/meanlength.csv -tck_weights_in ' + namer.dirs['output']['fiber'] + '/weights.csv -scale_length -stat_edge mean --force'
-	    print(cmd)
-	    os.system(cmd)
+            print('Combining whole-brain tractogram with grey matter parcellation to produce the connectome...')
+            cmd='tck2connectome ' + namer.dirs['output']['fiber'] + '/tractogram.tck ' + parc_mif + ' ' + namer.dirs['output']['conn'].values()[0] + '/connectome.csv -tck_weights_in ' + namer.dirs['output']['fiber'] + '/weights.csv -out_assignments ' + namer.dirs['output']['conn'].values()[0] + '/assignments.csv --force'
+            os.system(cmd)
+            cmd='tck2connectome ' + namer.dirs['output']['fiber'] + '/tractogram.tck ' + parc_mif + ' ' + namer.dirs['output']['conn'].values()[0] + '/meanlength.csv -tck_weights_in ' + namer.dirs['output']['fiber'] + '/weights.csv -scale_length -stat_edge mean --force'
+            os.system(cmd)
+            print('Generating geometric data for enhanced connectome visualisation...')
+            cmd='connectome2tck ' + namer.dirs['output']['fiber'] + '/tractogram.tck ' + namer.dirs['output']['conn'].values()[0] + '/assignments.csv ' + namer.dirs['output']['conn'].values()[0] + '/exemplars.tck -tck_weights_in ' + namer.dirs['output']['fiber'] + '/weights.csv -exemplars ' + parc_mif + ' -files single --force'
+            os.system(cmd)
+            cmd='label2mesh ' + parc_mif + ' ' + namer.dirs['output']['conn'].values()[0] + '/nodes.obj --force'
+            os.system(cmd)
+            cmd='meshfilter ' + namer.dirs['output']['conn'].values()[0] + '/nodes.obj smooth ' + namer.dirs['output']['conn'].values()[0] + '/nodes_smooth.obj --force'
+            os.system(cmd)
 	    #g1.make_graph_old()
 	    #g1.make_regressors()
-            g1.summary()
-            g1.save_graph(connectomes[idx])
-	except:
-	    print(label + ' FAILED. Skipping...')
-	    continue
+            #g1.summary()
+            #g1.save_graph(connectomes[idx])
+#	except:
+#	    print(label + ' FAILED. Skipping...')
+#	    continue
 
     exe_time = datetime.now() - startTime
     qc_dwi.save(qc_stats, exe_time)
