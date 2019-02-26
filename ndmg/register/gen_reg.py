@@ -178,10 +178,11 @@ class dmri_reg(object):
         self.dwi_aligned_atlas = "{}/{}_aligned_atlas.nii.gz".format(self.namer.dirs['output']['reg_anat'], self.atlas_name)
         #self.dwi_aligned_atlas_mask = "{}/{}_aligned_atlas_mask.nii.gz".format(self.namer.dirs['tmp']['reg_a'], self.atlas_name)
 
+	node_num =  len(np.unique(nib.load(self.atlas).get_data()))
         if self.simple is False:
             try:
 		# Apply warp resulting from the inverse of T1w-->MNI created earlier
-                mgru.apply_warp(self.t1w_brain, self.atlas, self.aligned_atlas_skull, warp=self.mni2t1w_warp)
+                mgru.apply_warp(self.t1w_brain, self.atlas, self.aligned_atlas_skull, warp=self.mni2t1w_warp, interp='nn', sup=True)
 	
                 # Apply transform to dwi space
                 mgru.applyxfm(self.nodif_B0, self.aligned_atlas_skull, self.t1wtissue2dwi_xfm, self.dwi_aligned_atlas)
@@ -211,6 +212,7 @@ class dmri_reg(object):
         # Set intensities to int
         self.atlas_img = nib.load(self.dwi_aligned_atlas)
         self.atlas_data = self.atlas_img.get_data().astype('int')
+	self.atlas_data[self.atlas_data>node_num] = 0
         nib.save(nib.Nifti1Image(self.atlas_data.astype(np.int32), affine=self.atlas_img.affine, header=self.atlas_img.header), self.dwi_aligned_atlas)
         cmd='fslmaths ' + self.dwi_aligned_atlas + ' -mas ' + self.nodif_B0_mask + ' ' + self.dwi_aligned_atlas
         os.system(cmd)
@@ -255,7 +257,7 @@ class dmri_reg(object):
 
         if self.simple is False:
             # Apply warp resulting from the inverse MNI->T1w created earlier
-            mgru.apply_warp(self.t1w_brain, self.vent_mask_mni, self.vent_mask_t1w, warp=self.mni2t1w_warp)
+            mgru.apply_warp(self.t1w_brain, self.vent_mask_mni, self.vent_mask_t1w, warp=self.mni2t1w_warp, interp='nn', sup=True)
             
 	# Applyxfm tissue maps to dwi space
         mgru.applyxfm(self.nodif_B0, self.vent_mask_t1w, self.t1wtissue2dwi_xfm, self.vent_mask_dwi)

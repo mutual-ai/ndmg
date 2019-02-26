@@ -452,7 +452,7 @@ def applyxfm(ref, inp, xfm, aligned):
     os.system(cmd)
 
 
-def apply_warp(ref, inp, out, warp, xfm=None, mask=None):
+def apply_warp(ref, inp, out, warp, xfm=None, mask=None, interp=None, sup=False):
     """
     Applies a warp from the functional to reference space
     in a single step, using information about the structural->ref
@@ -478,6 +478,10 @@ def apply_warp(ref, inp, out, warp, xfm=None, mask=None):
         cmd += " --premat=" + xfm
     if mask is not None:
         cmd += " --mask=" + mask
+    if interp is not None:
+	cmd += " --interp=" + interp
+    if sup is True:
+        cmd += " --super --superlevel=a"
     os.system(cmd)
 
 

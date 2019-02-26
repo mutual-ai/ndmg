@@ -11,9 +11,7 @@ ENV LIBPNG_URL http://mirrors.kernel.org/debian/pool/main/libp/libpng/libpng12-0
 #--------Initial Configuration-----------------------------------------------#
 # download/install basic dependencies, and set up python
 RUN apt-get update && \
-    apt-get install -y zip unzip vim git curl libglu1 python-setuptools zlib1g-dev \
-    git libpng-dev libfreetype6-dev pkg-config g++ vim r-base-core libgsl0-dev build-essential \
-    openssl
+    apt-get install -y zip unzip vim git curl libglu1 python-setuptools zlib1g-dev git libpng-dev libfreetype6-dev pkg-config g++ vim r-base-core libgsl0-dev build-essential openssl mesa-common-dev libglu1-mesa-dev g++ libgtk2.0-dev libglib2.0-dev libglibmm-2.4-dev libgtkmm-2.4-dev libgtkglext1-dev libgl1-mesa-dev qt5-default libqt5svg5* libeigen3-dev
 
 # upgrade python to solve TLS issues
 RUN apt-get update && \
@@ -44,7 +42,7 @@ RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.d
 #---------AFNI INSTALL--------------------------------------------------------#
 # setup of AFNI, which provides robust modifications of many of neuroimaging
 # algorithms
-RUN apt-get update -qq && apt-get install -yq --no-install-recommends ed gsl-bin libglu1-mesa-dev libglib2.0-0 libglw1-mesa fsl-atlases \
+RUN apt-get update -qq && apt-get install -yq --no-install-recommends ed gsl-bin libglu1-mesa-dev libglib2.0-0 libglw1-mesa fsl-atlases fsl-first-data \
     libgomp1 libjpeg62 libxm4 netpbm tcsh xfonts-base xvfb && \
     libs_path=/usr/lib/x86_64-linux-gnu && \
     if [ -f $libs_path/libgsl.so.19 ]; then \
@@ -70,12 +68,16 @@ RUN mkdir -p /opt/afni && \
     rm -rf afni.tar.gz
 ENV PATH=/opt/afni:$PATH
 
+#--------MRTRIX SETUP----------------------------------------------------------#
+RUN git clone https://github.com/MRtrix3/mrtrix3.git /opt/mrtrix3
+ENV EIGEN_CFLAGS="-isystem /usr/include/eigen3"
+RUN cd /opt/mrtrix3 && ./configure && ./build && ./set_path
+ENV PATH=/opt/mrtrix3/bin:$PATH
+
 #--------NDMG SETUP-----------------------------------------------------------#
 # setup of python dependencies for ndmg itself, as well as file dependencies
 RUN \
-    pip install numpy networkx>=1.11 nibabel>=2.0 dipy==0.14.0 scipy \
-    python-dateutil==2.6.1 boto3 awscli matplotlib==1.5.3 plotly==1.12.9 nilearn>=0.2 sklearn>=0.0 \
-    pandas cython vtk pyvtk awscli requests==2.5.3 scikit-image pybids==0.6.4 ipython
+    pip install numpy networkx>=1.11 nibabel>=2.0 dipy==0.14.0 scipy python-dateutil==2.6.1 boto3 awscli matplotlib==1.5.3 plotly==1.12.9 nilearn>=0.2 sklearn>=0.0 pandas cython vtk pyvtk awscli nipype requests==2.5.3 scikit-image pybids==0.6.4 ipython
 
 RUN \
     git clone -b dev-dmri-fmri $NDMG_URL /ndmg && \
