@@ -19,7 +19,7 @@
 # Created by Eric Bridgeford on 2017-08-09.
 # Email: ebridge2@jhu.edu
 
-from bids import BIDSLayout
+# from bids import BIDSLayout
 import re
 from itertools import product
 import boto3
@@ -31,26 +31,27 @@ class name_resource:
     """
     A class for naming derivatives under the BIDs spec.
     """
+
     def __init__(self, modf, t1wf, tempf, opath):
-        self.__subi__ = os.path.basename(modf).split('.')[0]
-        self.__anati__ = os.path.basename(t1wf).split('.')[0]
-        self.__sub__ = re.search(r'(sub-)(?!.*sub-).*?(?=[_])', modf).group()
-        self.__suball__  = "sub-{}".format(self.__sub__)
-        self.__ses__ = re.search(r'(ses-)(?!.*ses-).*?(?=[_])', modf)
+        self.__subi__ = os.path.basename(modf).split(".")[0]
+        self.__anati__ = os.path.basename(t1wf).split(".")[0]
+        self.__sub__ = re.search(r"(sub-)(?!.*sub-).*?(?=[_])", modf).group()
+        self.__suball__ = "sub-{}".format(self.__sub__)
+        self.__ses__ = re.search(r"(ses-)(?!.*ses-).*?(?=[_])", modf)
         if self.__ses__:
             self.__ses__ = self.__ses__.group()
             self.__suball__ = self.__suball__ + "_ses-{}".format(self.__ses__)
-        self.__run__ = re.search(r'(run-)(?!.*run-).*?(?=[_])', modf)
+        self.__run__ = re.search(r"(run-)(?!.*run-).*?(?=[_])", modf)
         if self.__run__:
             self.__run__ = self.__run__.group()
             self.__suball__ = self.__suball__ + "_run-{}".format(self.__run__)
-        self.__task__ = re.search(r'(task-)(?!.*task-).*?(?=[_])', modf)
+        self.__task__ = re.search(r"(task-)(?!.*task-).*?(?=[_])", modf)
         if self.__task__:
             self.__task__ = self.__task__.group()
             self.__suball__ = self.__suball__ + "_run-{}".format(self.__task__)
-        self.__temp__ = os.path.basename(tempf).split('.')[0]
-        self.__space__ = re.split(r'[._]', self.__temp__)[0]
-        self.__res__ = re.search(r'(res-)(?!.*res-).*?(?=[_])', tempf)
+        self.__temp__ = os.path.basename(tempf).split(".")[0]
+        self.__space__ = re.split(r"[._]", self.__temp__)[0]
+        self.__res__ = re.search(r"(res-)(?!.*res-).*?(?=[_])", tempf)
         if self.__res__:
             self.__res__ = self.__res__.group()
         self.__basepath__ = opath
@@ -68,21 +69,20 @@ class name_resource:
         self.dirs = {}
         if not isinstance(labels, list):
             labels = [labels]
-        dirtypes = ['output', 'tmp', 'qa']
+        dirtypes = ["output", "tmp", "qa"]
         for dirt in dirtypes:
             olist = [self.get_outdir()]
             self.dirs[dirt] = {}
-            if dirt in ['tmp', 'qa']:
-                olist = olist +[dirt] + self.get_sub_info()
-            self.dirs[dirt]['base'] = os.path.join(*olist)
+            if dirt in ["tmp", "qa"]:
+                olist = olist + [dirt] + self.get_sub_info()
+            self.dirs[dirt]["base"] = os.path.join(*olist)
             for kwd, path in paths.iteritems():
-                newdir = os.path.join(*[self.dirs[dirt]['base'], path])
+                newdir = os.path.join(*[self.dirs[dirt]["base"], path])
                 if kwd in label_dirs:  # levels with label granularity
                     self.dirs[dirt][kwd] = {}
                     for label in labels:
                         labname = self.get_label(label)
-                        self.dirs[dirt][kwd][labname] = os.path.join(newdir,
-                           labname)
+                        self.dirs[dirt][kwd][labname] = os.path.join(newdir, labname)
                 else:
                     self.dirs[dirt][kwd] = newdir
         newdirs = flatten(self.dirs, [])
@@ -95,8 +95,8 @@ class name_resource:
         Called by constructor to initialize the output directory.
         """
         olist = [self.__basepath__]
-        #olist.append(self.__sub__)
-        #if self.__ses__:
+        # olist.append(self.__sub__)
+        # if self.__ses__:
         #    olist.append(self.__ses__)
         return os.path.join(*olist)
 
@@ -115,13 +115,13 @@ class name_resource:
 
     def get_template_space(self):
         return "space-{}_{}".format(self.__space__, self.__res__)
-    
+
     def get_label(self, label):
         """
         return the formatted label information for the parcellation.
         """
         return mgu.get_filename(label)
-        #return "label-{}".format(re.split(r'[._]',
+        # return "label-{}".format(re.split(r'[._]',
         #                         os.path.basename(label))[0])
 
     def name_derivative(self, folder, derivative):
@@ -158,6 +158,7 @@ class name_resource:
             olist.append(self.__ses__)
         return olist
 
+
 def flatten(current, result=[]):
     if isinstance(current, dict):
         for key in current:
@@ -166,17 +167,18 @@ def flatten(current, result=[]):
         result.append(current)
     return result
 
-def sweep_directory(bdir, subj=None, sesh=None, task=None, run=None, modality='dwi'):
+
+def sweep_directory(bdir, subj=None, sesh=None, task=None, run=None, modality="dwi"):
     """
     Given a BIDs formatted directory, crawls the BIDs dir and prepares the
     necessary inputs for the NDMG pipeline. Uses regexes to check matches for
     BIDs compliance.
     """
-    if modality == 'dwi':
+    if modality == "dwi":
         dwis = []
         bvals = []
         bvecs = []
-    elif modality == 'func':
+    elif modality == "func":
         funcs = []
     anats = []
     layout = BIDSLayout(bdir)  # initialize BIDs tree on bdir
@@ -209,37 +211,33 @@ def sweep_directory(bdir, subj=None, sesh=None, task=None, run=None, modality='d
             # the attributes for our modality img
             mod_attributes = [sub, ses, tas, ru]
             # the keys for our modality img
-            mod_keys = ['subject', 'session', 'task', 'run']
+            mod_keys = ["subject", "session", "task", "run"]
             # our query we will use for each modality img
-            mod_query = {'modality': modality}
-            if modality == 'dwi':
-                type_img = 'dwi'  # use the dwi image
-            elif modality == 'func':
-                type_img = 'bold'  # use the bold image
-            mod_query['type'] = type_img
+            mod_query = {"modality": modality}
+            if modality == "dwi":
+                type_img = "dwi"  # use the dwi image
+            elif modality == "func":
+                type_img = "bold"  # use the bold image
+            mod_query["type"] = type_img
 
             for attr, key in zip(mod_attributes, mod_keys):
                 if attr:
                     mod_query[key] = attr
 
             anat_attributes = [sub, ses]  # the attributes for our anat img
-            anat_keys = ['subject', 'session']  # the keys for our modality img
+            anat_keys = ["subject", "session"]  # the keys for our modality img
             # our query for the anatomical image
-            anat_query = {'modality': 'anat', 'type': 'T1w',
-                          'extensions': 'nii.gz|nii'}
+            anat_query = {"modality": "anat", "type": "T1w", "extensions": "nii.gz|nii"}
             for attr, key in zip(anat_attributes, anat_keys):
                 if attr:
                     anat_query[key] = attr
             # make a query to fine the desired files from the BIDSLayout
             anat = layout.get(**anat_query)
-            if modality == 'dwi':
-                dwi = layout.get(**merge_dicts(mod_query,
-                                               {'extensions': 'nii.gz|nii'}))
-                bval = layout.get(**merge_dicts(mod_query,
-                                                {'extensions': 'bval'}))
-                bvec = layout.get(**merge_dicts(mod_query,
-                                                {'extensions': 'bvec'}))
-                if (anat and dwi and bval and bvec):
+            if modality == "dwi":
+                dwi = layout.get(**merge_dicts(mod_query, {"extensions": "nii.gz|nii"}))
+                bval = layout.get(**merge_dicts(mod_query, {"extensions": "bval"}))
+                bvec = layout.get(**merge_dicts(mod_query, {"extensions": "bvec"}))
+                if anat and dwi and bval and bvec:
                     for (dw, bva, bve) in zip(dwi, bval, bvec):
                         if dw.filename not in dwis:
                             # if all the required files exist, append by the first
@@ -248,25 +246,28 @@ def sweep_directory(bdir, subj=None, sesh=None, task=None, run=None, modality='d
                             dwis.append(dw.filename)
                             bvals.append(bva.filename)
                             bvecs.append(bve.filename)
-            elif modality == 'func':
-                func = layout.get(**merge_dicts(mod_query,
-                                                {'extensions': 'nii.gz|nii'}))
+            elif modality == "func":
+                func = layout.get(
+                    **merge_dicts(mod_query, {"extensions": "nii.gz|nii"})
+                )
                 if func and anat:
                     for fun in func:
                         if fun.filename not in funcs:
                             funcs.append(fun.filename)
                             anats.append(anat[0].filename)
-    if modality == 'dwi':
+    if modality == "dwi":
         if not len(dwis) or not len(bvals) or not len(bvecs) or not len(anats):
             print("No dMRI files found in BIDs spec. Skipping...")
         return (dwis, bvals, bvecs, anats)
-    elif modality == 'func':
+    elif modality == "func":
         if not len(funcs) or not len(anats):
             print("No fMRI files found in BIDs spec. Skipping...")
         return (funcs, anats)
     else:
-        raise ValueError('Incorrect modality passed.\
-                         Choices are \'func\' and \'dwi\'.')
+        raise ValueError(
+            "Incorrect modality passed.\
+                         Choices are 'func' and 'dwi'."
+        )
 
 
 def as_list(x):
@@ -290,23 +291,25 @@ def merge_dicts(x, y):
     z.update(y)
     return z
 
+
 def s3_get_data(bucket, remote, local, public=True):
     """
     Given an s3 bucket, data location on the bucket, and a download location,
     crawls the bucket and recursively pulls all data.
     """
-    client = boto3.client('s3')
+    client = boto3.client("s3")
     if not public:
-        bkts = [bk['Name'] for bk in client.list_buckets()['Buckets']]
+        bkts = [bk["Name"] for bk in client.list_buckets()["Buckets"]]
         if bucket not in bkts:
-            sys.exit("Error: could not locate bucket. Available buckets: " +
-                     ", ".join(bkts))
+            sys.exit(
+                "Error: could not locate bucket. Available buckets: " + ", ".join(bkts)
+            )
 
-    cmd = 'aws s3 cp --recursive s3://{}/{}/ {}'.format(bucket, remote, local)
+    cmd = "aws s3 cp --recursive s3://{}/{}/ {}".format(bucket, remote, local)
     if public:
-        cmd += ' --no-sign-request --region=us-east-1'
+        cmd += " --no-sign-request --region=us-east-1"
 
-    std, err = mgu.execute_cmd('mkdir -p {}'.format(local))
+    std, err = mgu.execute_cmd("mkdir -p {}".format(local))
     std, err = mgu.execute_cmd(cmd)
 
 
@@ -315,5 +318,5 @@ def s3_push_data(bucket, remote, outDir, modifier, creds=True):
     cmd = cmd.format(outDir, bucket, remote, modifier)
     if not creds:
         print("Note: no credentials provided, may fail to push big files.")
-        cmd += ' --no-sign-request'
+        cmd += " --no-sign-request"
     mgu.execute_cmd(cmd)
