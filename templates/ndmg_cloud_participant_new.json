@@ -1,5 +1,5 @@
 {
-    "jobDefinitionName": "",
+    "jobDefinitionName": "ndmgstage",
     "type": "container",
     "parameters": {
         "KeyName": ""
@@ -9,7 +9,19 @@
         "vcpus": 0,
         "memory": 0,
         "command": [
-            ""
+            "/data/raw",
+            "/data/outputs",
+            "participant",
+            "<MODE>",
+            "--bucket",
+            "<BUCKET>",
+            "--remote_path",
+            "<PATH>",
+            "--participant_label",
+            "<SUBJ>",
+            "--push_data",
+            "--stc",
+            "<STC>"
         ],
         "jobRoleArn": "",
         "volumes": [
@@ -44,56 +56,6 @@
         ],
         "user": "",
         "instanceType": ""
-    },
-    "nodeProperties": {
-        "numNodes": 0,
-        "mainNode": 0,
-        "nodeRangeProperties": [
-            {
-                "targetNodes": "",
-                "container": {
-                    "image": "",
-                    "vcpus": 0,
-                    "memory": 0,
-                    "command": [
-                        ""
-                    ],
-                    "jobRoleArn": "",
-                    "volumes": [
-                        {
-                            "host": {
-                                "sourcePath": ""
-                            },
-                            "name": ""
-                        }
-                    ],
-                    "environment": [
-                        {
-                            "name": "",
-                            "value": ""
-                        }
-                    ],
-                    "mountPoints": [
-                        {
-                            "containerPath": "",
-                            "readOnly": true,
-                            "sourceVolume": ""
-                        }
-                    ],
-                    "readonlyRootFilesystem": true,
-                    "privileged": true,
-                    "ulimits": [
-                        {
-                            "hardLimit": 0,
-                            "name": "",
-                            "softLimit": 0
-                        }
-                    ],
-                    "user": "",
-                    "instanceType": ""
-                }
-            }
-        ]
     },
     "retryStrategy": {
         "attempts": 0
