@@ -1,8 +1,8 @@
 {
-    "jobName": "<JOBNAME>", 
-    "jobQueue": "ndmg-queue", 
-    "dependsOn": [], 
-    "jobDefinition": "ndmg", 
+    "jobName": "<JOBNAME>",
+    "jobQueue": "ndmg-queue",
+    "dependsOn": [],
+    "jobDefinition": "ndmg",
     "parameters": {},
     "containerOverrides": {
         "command": [
@@ -16,9 +16,7 @@
             "<PATH>",
             "--participant_label",
             "<SUBJ>",
-            "--push_data",
-            "--stc",
-            "<STC>"
+            "--push_data"
         ],
         "environment": [
             {

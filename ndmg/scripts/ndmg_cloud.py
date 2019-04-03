@@ -147,7 +147,7 @@ def create_json(bucket, path, threads, jobdir, group=False, credentials=None,
     cmd[3] = re.sub('(<MODE>)', mode, cmd[3])
     cmd[5] = re.sub('(<BUCKET>)', bucket, cmd[5])
     cmd[7] = re.sub('(<PATH>)', path, cmd[7])
-    cmd[12] = re.sub('(<STC>)', stc, cmd[12])
+    # cmd[12] = re.sub('(<STC>)', stc, cmd[12])
     if bg:
         cmd.append('--big')
     if group:
