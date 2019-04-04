@@ -30,7 +30,8 @@ from argparse import ArgumentParser
 from scipy import ndimage
 from matplotlib.colors import LinearSegmentedColormap
 import matplotlib as mpl
-mpl.use('Agg')  # very important above pyplot import
+
+mpl.use("Agg")  # very important above pyplot import
 
 import matplotlib.pyplot as plt
 
@@ -43,21 +44,20 @@ def reg_dti_pngs(dti, loc, atlas, outdir):
 
     atlas_data = nb.load(atlas).get_data()
     dti_data = nb.load(dti).get_data()
-    b0_data = dti_data[:,:,:,loc]
+    b0_data = dti_data[:, :, :, loc]
 
-    cmap1 = LinearSegmentedColormap.from_list('mycmap1', ['black', 'magenta'])
-    cmap2 = LinearSegmentedColormap.from_list('mycmap2', ['black', 'green'])
+    cmap1 = LinearSegmentedColormap.from_list("mycmap1", ["black", "magenta"])
+    cmap2 = LinearSegmentedColormap.from_list("mycmap2", ["black", "green"])
 
     fig = plot_overlays(atlas_data, b0_data, (cmap1, cmap2))
 
     # name and save the file
-    fname = os.path.split(dti)[1].split(".")[0] + '.png'
-    plt.savefig(outdir + '/' + fname, format='png')
+    fname = os.path.split(dti)[1].split(".")[0] + ".png"
+    plt.savefig(outdir + "/" + fname, format="png")
 
 
 def plot_overlays(atlas, b0, cmaps):
-    plt.rcParams.update({'axes.labelsize': 'x-large',
-                         'axes.titlesize': 'x-large'})
+    plt.rcParams.update({"axes.labelsize": "x-large", "axes.titlesize": "x-large"})
 
     if b0.shape == (182, 218, 182):
         x = [78, 90, 100]
@@ -65,15 +65,17 @@ def plot_overlays(atlas, b0, cmaps):
         z = [88, 103, 107]
     else:
         shap = b0.shape
-        x = [int(shap[0]*0.35), int(shap[0]*0.51), int(shap[0]*0.65)]
-        y = [int(shap[1]*0.35), int(shap[1]*0.51), int(shap[1]*0.65)]
-        z = [int(shap[2]*0.35), int(shap[2]*0.51), int(shap[2]*0.65)]
+        x = [int(shap[0] * 0.35), int(shap[0] * 0.51), int(shap[0] * 0.65)]
+        y = [int(shap[1] * 0.35), int(shap[1] * 0.51), int(shap[1] * 0.65)]
+        z = [int(shap[2] * 0.35), int(shap[2] * 0.51), int(shap[2] * 0.65)]
     coords = (x, y, z)
 
-    labs = ['Sagittal Slice (YZ fixed)',
-            'Coronal Slice (XZ fixed)',
-            'Axial Slice (XY fixed)']
-    var = ['X', 'Y', 'Z']
+    labs = [
+        "Sagittal Slice (YZ fixed)",
+        "Coronal Slice (XZ fixed)",
+        "Axial Slice (XY fixed)",
+    ]
+    var = ["X", "Y", "Z"]
     # create subplot for first slice
     # and customize all labels
     idx = 0
@@ -94,13 +96,19 @@ def plot_overlays(atlas, b0, cmaps):
 
             if idx % 3 == 1:
                 ax.set_ylabel(labs[i])
-                ax.yaxis.set_ticks([0, image.shape[0]/2, image.shape[0] - 1])
-                ax.xaxis.set_ticks([0, image.shape[1]/2, image.shape[1] - 1])
+                ax.yaxis.set_ticks([0, image.shape[0] / 2, image.shape[0] - 1])
+                ax.xaxis.set_ticks([0, image.shape[1] / 2, image.shape[1] - 1])
 
             min_val, max_val = get_min_max(image)
-            plt.imshow(atl, interpolation='none', cmap=cmaps[0], alpha=0.5)
-            plt.imshow(image, interpolation='none', cmap=cmaps[1], alpha=0.5,
-                       vmin=min_val, vmax=max_val)
+            plt.imshow(atl, interpolation="none", cmap=cmaps[0], alpha=0.5)
+            plt.imshow(
+                image,
+                interpolation="none",
+                cmap=cmaps[1],
+                alpha=0.5,
+                vmin=min_val,
+                vmax=max_val,
+            )
 
     fig = plt.gcf()
     fig.set_size_inches(12.5, 10.5, forward=True)
@@ -108,9 +116,9 @@ def plot_overlays(atlas, b0, cmaps):
 
 
 def get_min_max(data):
-    '''
+    """
     data: regdti data to threshold.
-    '''
+    """
     min_val = np.percentile(data, 2)
     max_val = np.percentile(data, 95)
     return (min_val, max_val)

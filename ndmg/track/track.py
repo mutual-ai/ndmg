@@ -23,15 +23,13 @@ from __future__ import print_function
 import numpy as np
 import nibabel as nb
 from dipy.reconst.dti import TensorModel, fractional_anisotropy, quantize_evecs
-from dipy.reconst.csdeconv import (ConstrainedSphericalDeconvModel,
-                                   auto_response)
+from dipy.reconst.csdeconv import ConstrainedSphericalDeconvModel, auto_response
 from dipy.direction import peaks_from_model
 from dipy.tracking.eudx import EuDX
 from dipy.data import get_sphere
 
 
-class track():
-
+class track:
     def __init__(self):
         """
         Tensor and fiber tracking class
@@ -71,9 +69,14 @@ class track():
 
         model = TensorModel(gtab)
         ten = model.fit(data, mask)
-        sphere = get_sphere('symmetric724')
+        sphere = get_sphere("symmetric724")
         ind = quantize_evecs(ten.evecs, sphere.vertices)
-        eu = EuDX(a=ten.fa, ind=ind, seeds=seedIdx,
-                  odf_vertices=sphere.vertices, a_low=stop_val)
+        eu = EuDX(
+            a=ten.fa,
+            ind=ind,
+            seeds=seedIdx,
+            odf_vertices=sphere.vertices,
+            a_low=stop_val,
+        )
         tracks = [e for e in eu]
         return (ten, tracks)

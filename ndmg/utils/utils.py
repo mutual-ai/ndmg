@@ -40,7 +40,7 @@ def execute_cmd(cmd, verb=False):
     calling script
     """
     if verb:
-        print("Executing: {}".format(cmd))
+        print ("Executing: {}".format(cmd))
     p = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
     out, err = p.communicate()
     code = p.returncode
@@ -80,9 +80,11 @@ def get_braindata(brain_file):
         elif type(brain_file) is nb.nifti1.Nifti1Image:
             brain = brain_file
         else:
-            raise TypeError("Brain file is type: {}".format(type(brain_file)) +
-                            "; accepted types are numpy.ndarray, "
-                            "string, and nibabel.nifti1.Nifti1Image.")
+            raise TypeError(
+                "Brain file is type: {}".format(type(brain_file))
+                + "; accepted types are numpy.ndarray, "
+                "string, and nibabel.nifti1.Nifti1Image."
+            )
         braindata = brain.get_data()
     return braindata
 
@@ -116,8 +118,7 @@ def get_slice(mri, volid, sli):
     # Wraps volume in new nifti image
     head = mri_im.get_header()
     head.set_data_shape(head.get_data_shape()[0:3])
-    out = nb.Nifti1Image(vol, affine=mri_im.get_affine(),
-                         header=head)
+    out = nb.Nifti1Image(vol, affine=mri_im.get_affine(), header=head)
     out.update_header()
     # and saved to a new file
     nb.save(out, sli)
@@ -136,20 +137,18 @@ def load_bval_bvec_dwi(fbval, fbvec, dwi_file, dwi_file_out):
     bvals, bvecs = read_bvals_bvecs(fbval, fbvec)
 
     # Get rid of spurrious scans
-    idx = np.where((bvecs[:, 0] == 100) & (bvecs[:, 1] == 100) &
-                   (bvecs[:, 2] == 100))
+    idx = np.where((bvecs[:, 0] == 100) & (bvecs[:, 1] == 100) & (bvecs[:, 2] == 100))
     bvecs = np.delete(bvecs, idx, axis=0)
     bvals = np.delete(bvals, idx, axis=0)
     data = np.delete(data, idx, axis=3)
 
     # Save corrected DTI volume
-    dwi_new = nb.Nifti1Image(data, affine=img.get_affine(),
-                             header=img.get_header())
+    dwi_new = nb.Nifti1Image(data, affine=img.get_affine(), header=img.get_header())
     dwi_new.update_header()
     nb.save(dwi_new, dwi_file_out)
 
     gtab = gradient_table(bvals, bvecs, atol=0.01)
-    print(gtab.info)
+    print (gtab.info)
     return gtab
 
 
@@ -161,11 +160,11 @@ def load_bval_bvec(fbval, fbvec):
     """
     bvals, bvecs = read_bvals_bvecs(fbval, fbvec)
     gtab = gradient_table(bvals, bvecs, atol=0.01)
-    print(gtab.info)
+    print (gtab.info)
     return gtab
 
 
-def load_timeseries(timeseries_file, ts='roi'):
+def load_timeseries(timeseries_file, ts="roi"):
     """
     A function to load timeseries data. Exists to standardize
     formatting in case changes are made with how timeseries are
@@ -173,12 +172,14 @@ def load_timeseries(timeseries_file, ts='roi'):
      **Positional Arguments**
          timeseries_file: the file to load timeseries data from.
     """
-    if (ts == 'roi') or (ts == 'voxel'):
-        timeseries = np.load(timeseries_file)['roi']
+    if (ts == "roi") or (ts == "voxel"):
+        timeseries = np.load(timeseries_file)["roi"]
         return timeseries
     else:
-        print('You have not selected a valid timeseries type.' +
-              'options are ts=\'roi\' or ts=\'voxel\'.')
+        print (
+            "You have not selected a valid timeseries type."
+            + "options are ts='roi' or ts='voxel'."
+        )
     pass
 
 
@@ -237,12 +238,13 @@ def morton_region(parcellation, outpath):
             for z in range(0, dims[2]):
                 if at_dat[x, y, z] > 0:
                     region[XYZMorton((int(x), int(y), int(z)))] = at_dat[x, y, z]
-    outf = op.join(outpath, atlasn + '_morton.csv')
-    with open(outf, 'w')  as f:
+    outf = op.join(outpath, atlasn + "_morton.csv")
+    with open(outf, "w") as f:
         for key, val in region.iteritems():
-            f.write('{},{}\n'.format(key, val))
+            f.write("{},{}\n".format(key, val))
         f.close()
     return
+
 
 def parcel_overlap(parcellation1, parcellation2, outpath):
     """
@@ -268,20 +270,20 @@ def parcel_overlap(parcellation1, parcellation2, outpath):
 
     p1n = get_filename(parcellation1)
     p2n = get_filename(parcellation2)
-    
+
     overlapdat = lil_matrix((p1regs.shape[0], p2regs.shape[0]), dtype=np.float32)
     for p1idx, p1reg in enumerate(p1regs):
-        p1seq = (p1_dat == p1reg)
+        p1seq = p1_dat == p1reg
         N = p1seq.sum()
         poss_regs = np.unique(p2_dat[p1seq])
         for p2idx, p2reg in enumerate(p2regs):
-            if (p2reg in poss_regs):
+            if p2reg in poss_regs:
                 # percent overlap is p1seq and'd with the anatomical region voxelspace, summed and normalized
-                pover = np.logical_and(p1seq, p2_dat == p2reg).sum()/float(N)
+                pover = np.logical_and(p1seq, p2_dat == p2reg).sum() / float(N)
                 overlapdat[p1idx, p2idx] = pover
-            
+
     outf = op.join(outpath, "{}_{}.csv".format(p1n, p2n))
-    with open(outf, 'w')  as f:
+    with open(outf, "w") as f:
         p2str = ["%s" % x for x in p2regs]
         f.write("p1reg," + ",".join(p2str) + "\n")
         for idx, p1reg in enumerate(p1regs):
@@ -289,4 +291,3 @@ def parcel_overlap(parcellation1, parcellation2, outpath):
             f.write(str(p1reg) + "," + ",".join(datstr) + "\n")
         f.close()
     return
-

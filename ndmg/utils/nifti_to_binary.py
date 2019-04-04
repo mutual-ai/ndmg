@@ -30,9 +30,9 @@ def nib_to_bin(nii, dat):
     im = nb.load(nii)
     im_d = im.get_data()
 
-    length = reduce(lambda x, y: x*y, im_d.shape)
-    dat_d = np.reshape(im_d.astype(np.dtype('float32')), (1, length))
-    with open(dat, 'wb') as fl:
+    length = reduce(lambda x, y: x * y, im_d.shape)
+    dat_d = np.reshape(im_d.astype(np.dtype("float32")), (1, length))
+    with open(dat, "wb") as fl:
         fl.write(dat_d)
 
 
@@ -42,12 +42,12 @@ def main():
     result = parser.parse_args()
 
     niis = result.filenames
-    dats = [os.path.splitext(os.path.splitext(fn)[0])[0]+'.dat' for fn in niis]
+    dats = [os.path.splitext(os.path.splitext(fn)[0])[0] + ".dat" for fn in niis]
 
     for idx, fn in enumerate(niis):
-        print "Converting: ", os.path.basename(fn)
+        print("Converting: ", os.path.basename(fn))
         nib_to_bin(fn, dats[idx])
-        print "Success!"
+        print("Success!")
 
 
 if __name__ == "__main__":

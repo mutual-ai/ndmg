@@ -257,11 +257,11 @@ def sweep_directory(bdir, subj=None, sesh=None, task=None, run=None, modality="d
                             anats.append(anat[0].filename)
     if modality == "dwi":
         if not len(dwis) or not len(bvals) or not len(bvecs) or not len(anats):
-            print("No dMRI files found in BIDs spec. Skipping...")
+            print ("No dMRI files found in BIDs spec. Skipping...")
         return (dwis, bvals, bvecs, anats)
     elif modality == "func":
         if not len(funcs) or not len(anats):
-            print("No fMRI files found in BIDs spec. Skipping...")
+            print ("No fMRI files found in BIDs spec. Skipping...")
         return (funcs, anats)
     else:
         raise ValueError(
@@ -317,6 +317,6 @@ def s3_push_data(bucket, remote, outDir, modifier, creds=True):
     cmd = 'aws s3 cp --exclude "tmp/*" {} s3://{}/{}/{} --recursive --acl public-read'
     cmd = cmd.format(outDir, bucket, remote, modifier)
     if not creds:
-        print("Note: no credentials provided, may fail to push big files.")
+        print ("Note: no credentials provided, may fail to push big files.")
         cmd += " --no-sign-request"
     mgu.execute_cmd(cmd)

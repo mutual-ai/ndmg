@@ -36,28 +36,30 @@ def erode_mask(mask, v=0):
         v:
             - the number of voxels to erode by.
     """
-    print("Eroding Mask...")
+    print ("Eroding Mask...")
     for i in range(0, v):
         # masked_vox is a tuple 0f [x]. [y]. [z] cooords
         # wherever mask is nonzero
         erode_mask = np.zeros(mask.shape)
         x, y, z = np.where(mask != 0)
-        if (x.shape == y.shape and y.shape == z.shape):
+        if x.shape == y.shape and y.shape == z.shape:
             # iterated over all the nonzero voxels
             for j in range(0, x.shape[0]):
                 # check that the 3d voxels within 1 voxel are 1
                 # if so, add to the new mask
                 md = mask.shape
-                if (mask[x[j], y[j], z[j]] and
-                        mask[np.min((x[j]+1, md[0]-1)), y[j], z[j]] and
-                        mask[x[j], np.min((y[j]+1, md[1]-1)), z[j]] and
-                        mask[x[j], y[j], np.min((z[j]+1, md[2]-1))] and
-                        mask[np.max((x[j]-1, 0)), y[j], z[j]] and
-                        mask[x[j], np.max((y[j]-1, 0)), z[j]] and
-                        mask[x[j], y[j], np.max((z[j]-1, 0))]):
+                if (
+                    mask[x[j], y[j], z[j]]
+                    and mask[np.min((x[j] + 1, md[0] - 1)), y[j], z[j]]
+                    and mask[x[j], np.min((y[j] + 1, md[1] - 1)), z[j]]
+                    and mask[x[j], y[j], np.min((z[j] + 1, md[2] - 1))]
+                    and mask[np.max((x[j] - 1, 0)), y[j], z[j]]
+                    and mask[x[j], np.max((y[j] - 1, 0)), z[j]]
+                    and mask[x[j], y[j], np.max((z[j] - 1, 0))]
+                ):
                     erode_mask[x[j], y[j], z[j]] = 1
         else:
-            raise ValueError('Your mask erosion has an invalid shape.')
+            raise ValueError("Your mask erosion has an invalid shape.")
         mask = erode_mask
     return mask
 
@@ -79,21 +81,19 @@ def probmap2mask(prob_map, mask_path, t, erode=0):
         erode=0:
             - the number of voxels to erode by. Defaults to 0.
     """
-    print("Extracting Mask from probability map {}...".format(prob_map))
+    print ("Extracting Mask from probability map {}...".format(prob_map))
     prob = nb.load(prob_map)
     prob_dat = prob.get_data()
     mask = (prob_dat > t).astype(int)
     if erode > 0:
         mask = erode_mask(mask, v=erode)
-    img = nb.Nifti1Image(mask,
-                         header=prob.header,
-                         affine=prob.get_affine())
+    img = nb.Nifti1Image(mask, header=prob.header, affine=prob.get_affine())
     # save the corrected image
     nb.save(img, mask_path)
     return mask_path
 
 
-def segment_t1w(t1w, basename, opts=''):
+def segment_t1w(t1w, basename, opts=""):
     """
     A function to use FSL's FAST to segment an anatomical
     image into GM, WM, and CSF prob maps.
@@ -114,13 +114,13 @@ def segment_t1w(t1w, basename, opts=''):
               prior probability maps if the input T1w MRI is in
               standard space.
     """
-    print("Segmenting Anatomical Image into WM, GM, and CSF...")
+    print ("Segmenting Anatomical Image into WM, GM, and CSF...")
     # run FAST, with options -t for the image type and -n to
     # segment into CSF (pve_0), WM (pve_1), GM (pve_2)
     cmd = "fast -t 1 {} -n 3 -o {} {}".format(opts, basename, t1w)
     mgu.execute_cmd(cmd, verb=True)
     out = {}  # the outputs
-    out['wm_prob'] = "{}_{}".format(basename, "pve_2.nii.gz")
-    out['gm_prob'] = "{}_{}".format(basename, "pve_1.nii.gz")
-    out['csf_prob'] = "{}_{}".format(basename, "pve_0.nii.gz")
+    out["wm_prob"] = "{}_{}".format(basename, "pve_2.nii.gz")
+    out["gm_prob"] = "{}_{}".format(basename, "pve_1.nii.gz")
+    out["csf_prob"] = "{}_{}".format(basename, "pve_0.nii.gz")
     return out

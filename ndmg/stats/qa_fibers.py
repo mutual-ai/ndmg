@@ -34,6 +34,7 @@ try:
 except ImportError:
     pass
 
+
 def visualize_fibs(fibs, fibfile, atlasfile, outdir, opacity, num_samples):
     """
     Takes fiber streamlines and visualizes them using DiPy
@@ -47,9 +48,10 @@ def visualize_fibs(fibs, fibfile, atlasfile, outdir, opacity, num_samples):
     """
     try:
         import vtk
-        print("VTK found - beginning fiber QA.")
+
+        print ("VTK found - beginning fiber QA.")
     except ImportError:
-        print("!! VTK not found; skipping fiber QA.")
+        print ("!! VTK not found; skipping fiber QA.")
         return
 
     # loading the fibers
@@ -84,16 +86,16 @@ def visualize_fibs(fibs, fibfile, atlasfile, outdir, opacity, num_samples):
     # TODO: allow size of window as an argument
     # window.show(renderer, size=(600, 600), reset_camera=False)
 
-    fname = os.path.split(fibfile)[1].split('.')[0] + '.png'
+    fname = os.path.split(fibfile)[1].split(".")[0] + ".png"
     window.record(renderer, out_path=outdir + fname, size=(600, 600))
 
 
 def threshold_fibers(fibs):
-    '''
+    """
     fibs: fibers as 2D array (N,3)
-    '''
+    """
     fib_lengths = [len(f) for f in fibs]
-    if (len(fib_lengths) == 0):
+    if len(fib_lengths) == 0:
         return fib_lengths
     # calculate median of  fiber lengths
     med = np.median(fib_lengths)
@@ -103,14 +105,14 @@ def threshold_fibers(fibs):
 
 
 def random_sample(fibs, num_samples):
-    '''
+    """
     fibs: fibers thresholded above median
     num_samples: number of fibers to sample from fibs
-    '''
+    """
     # if the number of samples is more than amount
     # of fibers available, then make num_samples
     # equal number of fibers available
-    if (len(fibs) <= num_samples):
+    if len(fibs) <= num_samples:
         num_samples = len(fibs)
     # generate the random sample indices
     samples = random.sample(range(len(fibs)), num_samples)
@@ -118,10 +120,10 @@ def random_sample(fibs, num_samples):
 
 
 def load_atlas(path, opacity):
-    '''
+    """
     path: path to atlas file
     opacity: opacity of overlayed atlas brain
-    '''
+    """
     nifti_reader = vtk.vtkNIFTIImageReader()
     nifti_reader.SetFileName(path)
     nifti_reader.Update()

@@ -34,7 +34,7 @@ def convert(indir, outdir,  verbose=False):
 
     # Create output directory structure
     if verbose:
-        print "Creating", outdir, "..."
+        print("Creating", outdir, "...")
     os.system('mkdir -p '+outdir)
 
     for path, dirs, files in os.walk(indir):
