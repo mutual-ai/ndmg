@@ -145,7 +145,7 @@ def create_json(bucket, path, threads, jobdir, group=False, credentials=None,
         for sesh in seshs[subj]:
             # add format-specific commands,
             job_cmd = deepcopy(cmd)
-            job_cmd[9] = re.sub('(<SUBJ>)', subj, job_cmd[9])
+            job_cmd[job_cmd.index('<SUBJ>')] = subj
             if sesh is not None:
                 job_cmd += [u'--session_label']
                 job_cmd += [u'{}'.format(sesh)]
