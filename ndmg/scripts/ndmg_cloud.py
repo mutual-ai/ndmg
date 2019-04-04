@@ -86,130 +86,195 @@ def crawl_bucket(bucket, path, group=False, mode='dwi'):
                                            for sesh in seshs[subj]]))
         return seshs
 
-# def create_json(bucket, path, threads, jobdir, group=False):
-#     """ Takes parameters to make jsons. """
-
-#     # make directories
-#     mgu.execute_cmd("mkdir -p {}".format(jobdir))
-#     mgu.execute_cmd("mkdir -p {}/jobs/".format(jobdir))
-#     mgu.execute_cmd("mkdir -p {}/ids/".format(jobdir))
-
-#     # grab template
-#     if group:
-#         pass  # TODO
-#     else:
-#         template = participant_templ
-#         seshs = threads
-
-#     # Get the template and put into ~/output/ndmg_cloud_participant.json
-#     if not os.path.isfile('{}/{}'.format(jobdir, template.split('/')[-1])):
-#         cmd = 'wget --quiet -P {} {}'.format(jobdir, template)
-#         mgu.execute_cmd(cmd)
-
-
 def create_json(bucket, path, threads, jobdir, group=False, credentials=None,
-                debug=False, dataset=None, log=False, stc=None, mode='dwi',
-                bg=False):
-    """
-    Takes parameters to make jsons
-    """
+                debug=False, dataset=None, log=False, mode='dwi',
+                bg=False, stc=None):
+    """ Takes parameters to make jsons. """
+
+    # make directories
     mgu.execute_cmd("mkdir -p {}".format(jobdir))
     mgu.execute_cmd("mkdir -p {}/jobs/".format(jobdir))
     mgu.execute_cmd("mkdir -p {}/ids/".format(jobdir))
+
+    # grab template
     if group:
-        template = group_templ
-        atlases = threads
+        pass  # TODO
     else:
         template = participant_templ
         seshs = threads
+
+    # Get the template and put into ~/output/ndmg_cloud_participant.json
     if not os.path.isfile('{}/{}'.format(jobdir, template.split('/')[-1])):
         cmd = 'wget --quiet -P {} {}'.format(jobdir, template)
-        mgu.execute_cmd(cmd)
+        mgu.execute_cmd(cmd) 
 
+    # open template json as dict in python,
+    # cmd is a list of commands passed to docker,
+    # env is the AWS_KEYS
     with open('{}/{}'.format(jobdir, template.split('/')[-1]), 'r') as inf:
         template = json.load(inf)
     cmd = template['containerOverrides']['command']
     env = template['containerOverrides']['environment']
 
+    # Add secret and public key to template dict
     if credentials is not None:
         cred = [line for line in csv.reader(open(credentials))]
         env[0]['value'] = [cred[1][idx]
-                           for idx, val in enumerate(cred[0])
-                           if "ID" in val][0]  # Adds public key ID to env
+                            for idx, val in enumerate(cred[0])
+                            if "ID" in val][0]  # Adds public key ID to env
         env[1]['value'] = [cred[1][idx]
-                           for idx, val in enumerate(cred[0])
-                           if "Secret" in val][0]  # Adds secret key to env
+                            for idx, val in enumerate(cred[0])
+                            if "Secret" in val][0]  # Adds secret key to env
     else:
         env = []
     template['containerOverrides']['environment'] = env
 
+    # edit mode, bucket, path
     jobs = list()
-    cmd[3] = re.sub('(<MODE>)', mode, cmd[3])
-    cmd[5] = re.sub('(<BUCKET>)', bucket, cmd[5])
-    cmd[7] = re.sub('(<PATH>)', path, cmd[7])
-    # cmd[12] = re.sub('(<STC>)', stc, cmd[12])
+    cmd[cmd.index('<MODE>')] = mode
+    cmd[cmd.index('<BUCKET>')] = bucket
+    cmd[cmd.index('<PATH>')] = path
     if bg:
         cmd.append('--big')
-    if group:
-        if dataset is not None:
-            cmd[10] = re.sub('(<DATASET>)', dataset, cmd[10])
-        else:
-            cmd[10] = re.sub('(<DATASET>)', '', cmd[10])
 
-        batlas = ['slab907', 'DS03231', 'DS06481', 'DS16784', 'DS72784']
-        for atlas in atlases:
-            if atlas in batlas:
-                print("... Skipping {} parcellation".format(atlas))
-                continue
-            print("... Generating job for {} parcellation".format(atlas))
+    # edit participant-specific values ()
+    # loop over every session of every participant
+    for subj in seshs.keys():
+        print("... Generating job for sub-{}".format(subj))
+        # and for each subject number in each participant number,
+        for sesh in seshs[subj]:
+            # add format-specific commands,
             job_cmd = deepcopy(cmd)
-            job_cmd[11] = re.sub('(<ATLAS>)', atlas, job_cmd[11])
-            if log:
-                job_cmd += ['--log']
-            if atlas == 'desikan':
-                job_cmd += ['--hemispheres']
+            job_cmd[9] = re.sub('(<SUBJ>)', subj, job_cmd[9])
+            if sesh is not None:
+                job_cmd += [u'--session_label']
+                job_cmd += [u'{}'.format(sesh)]
+            if debug:
+                job_cmd += [u'--debug']
 
+            # then, grab the template
             job_json = deepcopy(template)
             ver = ndmg.version.replace('.', '-')
             if dataset:
-                name = 'ndmg_{}_{}_{}'.format(ver, dataset, atlas)
+                name = 'ndmg_{}_{}_sub-{}'.format(ver, dataset, subj)
             else:
-                name = 'ndmg_{}_{}'.format(ver, atlas)
+                name = 'ndmg_{}_sub-{}'.format(ver, subj)
+            if sesh is not None:
+                name = '{}_ses-{}'.format(name, sesh)
+            print(job_cmd)
             job_json['jobName'] = name
             job_json['containerOverrides']['command'] = job_cmd
             job = os.path.join(jobdir, 'jobs', name+'.json')
             with open(job, 'w') as outfile:
                 json.dump(job_json, outfile)
-            jobs += [job]
+            jobs += [job] 
 
-    else:
-        for subj in seshs.keys():
-            print("... Generating job for sub-{}".format(subj))
-            for sesh in seshs[subj]:
-                job_cmd = deepcopy(cmd)
-                job_cmd[9] = re.sub('(<SUBJ>)', subj, job_cmd[9])
-                if sesh is not None:
-                    job_cmd += [u'--session_label']
-                    job_cmd += [u'{}'.format(sesh)]
-                if debug:
-                    job_cmd += [u'--debug']
+    # temporary, for understanding better
+    return (template, cmd, env)  # TODO
 
-                job_json = deepcopy(template)
-                ver = ndmg.version.replace('.', '-')
-                if dataset:
-                    name = 'ndmg_{}_{}_sub-{}'.format(ver, dataset, subj)
-                else:
-                    name = 'ndmg_{}_sub-{}'.format(ver, subj)
-                if sesh is not None:
-                    name = '{}_ses-{}'.format(name, sesh)
-                print(job_cmd)
-                job_json['jobName'] = name
-                job_json['containerOverrides']['command'] = job_cmd
-                job = os.path.join(jobdir, 'jobs', name+'.json')
-                with open(job, 'w') as outfile:
-                    json.dump(job_json, outfile)
-                jobs += [job]
-    return jobs
+# def create_json(bucket, path, threads, jobdir, group=False, credentials=None,
+#                 debug=False, dataset=None, log=False, mode='dwi',
+#                 bg=False):
+#     """
+#     Takes parameters to make jsons
+#     """
+#     mgu.execute_cmd("mkdir -p {}".format(jobdir))
+#     mgu.execute_cmd("mkdir -p {}/jobs/".format(jobdir))
+#     mgu.execute_cmd("mkdir -p {}/ids/".format(jobdir))
+#     if group:
+#         template = group_templ
+#         atlases = threads
+#     else:
+#         template = participant_templ
+#         seshs = threads
+#     if not os.path.isfile('{}/{}'.format(jobdir, template.split('/')[-1])):
+#         cmd = 'wget --quiet -P {} {}'.format(jobdir, template)
+#         mgu.execute_cmd(cmd)
+
+#     with open('{}/{}'.format(jobdir, template.split('/')[-1]), 'r') as inf:
+#         template = json.load(inf)
+#     cmd = template['containerOverrides']['command']
+#     env = template['containerOverrides']['environment']
+
+#     if credentials is not None:
+#         cred = [line for line in csv.reader(open(credentials))]
+#         env[0]['value'] = [cred[1][idx]
+#                            for idx, val in enumerate(cred[0])
+#                            if "ID" in val][0]  # Adds public key ID to env
+#         env[1]['value'] = [cred[1][idx]
+#                            for idx, val in enumerate(cred[0])
+#                            if "Secret" in val][0]  # Adds secret key to env
+#     else:
+#         env = []
+#     template['containerOverrides']['environment'] = env
+
+#     jobs = list()
+#     cmd[3] = re.sub('(<MODE>)', mode, cmd[3])
+#     cmd[5] = re.sub('(<BUCKET>)', bucket, cmd[5])
+#     cmd[7] = re.sub('(<PATH>)', path, cmd[7])
+#     # cmd[12] = re.sub('(<STC>)', stc, cmd[12])
+#     if bg:
+#         cmd.append('--big')
+#     if group:
+#         if dataset is not None:
+#             cmd[10] = re.sub('(<DATASET>)', dataset, cmd[10])
+#         else:
+#             cmd[10] = re.sub('(<DATASET>)', '', cmd[10])
+
+#         batlas = ['slab907', 'DS03231', 'DS06481', 'DS16784', 'DS72784']
+#         for atlas in atlases:
+#             if atlas in batlas:
+#                 print("... Skipping {} parcellation".format(atlas))
+#                 continue
+#             print("... Generating job for {} parcellation".format(atlas))
+#             job_cmd = deepcopy(cmd)
+#             job_cmd[11] = re.sub('(<ATLAS>)', atlas, job_cmd[11])
+#             if log:
+#                 job_cmd += ['--log']
+#             if atlas == 'desikan':
+#                 job_cmd += ['--hemispheres']
+
+#             job_json = deepcopy(template)
+#             ver = ndmg.version.replace('.', '-')
+#             if dataset:
+#                 name = 'ndmg_{}_{}_{}'.format(ver, dataset, atlas)
+#             else:
+#                 name = 'ndmg_{}_{}'.format(ver, atlas)
+#             job_json['jobName'] = name
+#             job_json['containerOverrides']['command'] = job_cmd
+#             job = os.path.join(jobdir, 'jobs', name+'.json')
+#             with open(job, 'w') as outfile:
+#                 json.dump(job_json, outfile)
+#             jobs += [job]
+
+#     else:
+#         for subj in seshs.keys():
+#             print("... Generating job for sub-{}".format(subj))
+#             for sesh in seshs[subj]:
+#                 job_cmd = deepcopy(cmd)
+#                 job_cmd[9] = re.sub('(<SUBJ>)', subj, job_cmd[9])
+#                 if sesh is not None:
+#                     job_cmd += [u'--session_label']
+#                     job_cmd += [u'{}'.format(sesh)]
+#                 if debug:
+#                     job_cmd += [u'--debug']
+
+#                 job_json = deepcopy(template)
+#                 ver = ndmg.version.replace('.', '-')
+#                 if dataset:
+#                     name = 'ndmg_{}_{}_sub-{}'.format(ver, dataset, subj)
+#                 else:
+#                     name = 'ndmg_{}_sub-{}'.format(ver, subj)
+#                 if sesh is not None:
+#                     name = '{}_ses-{}'.format(name, sesh)
+#                 print(job_cmd)
+#                 job_json['jobName'] = name
+#                 job_json['containerOverrides']['command'] = job_cmd
+#                 job = os.path.join(jobdir, 'jobs', name+'.json')
+#                 with open(job, 'w') as outfile:
+#                     json.dump(job_json, outfile)
+#                 jobs += [job]
+#     return jobs
 
 
 def submit_jobs(jobs, jobdir):
@@ -352,7 +417,7 @@ def main():
     elif state == 'group' or state == 'participant':
         print("Beginning batch submission process...")
         batch_submit(bucket, path, jobdir, creds, state, debug, dset, log,
-                     stc, mode, bg)
+                     mode, bg)
 
     sys.exit(0)
 

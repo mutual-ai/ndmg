@@ -9,6 +9,7 @@
             "/data/raw",
             "/data/outputs",
             "participant",
+            "--modality",
             "<MODE>",
             "--bucket",
             "<BUCKET>",
@@ -16,6 +17,8 @@
             "<PATH>",
             "--participant_label",
             "<SUBJ>",
+            "--session_label",
+            "<SESH>",
             "--push_data"
         ],
         "environment": [
