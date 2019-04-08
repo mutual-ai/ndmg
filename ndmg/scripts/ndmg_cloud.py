@@ -152,7 +152,10 @@ def create_json(bucket, path, threads, jobdir, group=False, credentials=None,
             if debug:
                 job_cmd += [u'--debug']
 
-            # then, grab the template
+            # then, grab the template,
+            # add additional parameters,
+            # make the json file for this iteration,
+            # and add the path to its json file to `jobs`.
             job_json = deepcopy(template)
             ver = ndmg.version.replace('.', '-')
             if dataset:
@@ -169,8 +172,16 @@ def create_json(bucket, path, threads, jobdir, group=False, credentials=None,
                 json.dump(job_json, outfile)
             jobs += [job] 
 
-    # temporary, for understanding better
-    return (template, cmd, env)  # TODO
+    # return list of job jsons
+    return jobs
+
+# #  FOR DEBUGGING  # 
+bucket = 'ndmg-data'
+path = 'HNU1t'
+jobdir = '/Users/alex/output'
+threads = crawl_bucket(bucket, path)
+create_json('ndmg-data', 'HNU1t', threads, jobdir)
+# --------------- #
 
 # def create_json(bucket, path, threads, jobdir, group=False, credentials=None,
 #                 debug=False, dataset=None, log=False, mode='dwi',
