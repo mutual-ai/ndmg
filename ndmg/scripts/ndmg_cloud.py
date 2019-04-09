@@ -180,7 +180,7 @@ def create_json(bucket, path, threads, jobdir, group=False, credentials=None,
 # path = 'HNU1t'
 # jobdir = '/Users/alex/output'
 # threads = crawl_bucket(bucket, path)
-# create_json('ndmg-data', 'HNU1t', threads, jobdir)
+# create_json('ndmg-data', 'HNU1s', threads, jobdir)
 # --------------- #
 
 # def create_json(bucket, path, threads, jobdir, group=False, credentials=None,
