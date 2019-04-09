@@ -6,7 +6,7 @@
     "parameters": {},
     "containerOverrides": {
         "command": [
-            "/data/raw",
+            "/tmp/data/raw",
             "/tmp/data/outputs",
             "participant",
             "--modality",
