@@ -31,7 +31,7 @@ import csv
 import boto3
 import json
 import ast
-
+print('alex ndmg_cloud')
 # participant_templ = 'https://raw.githubusercontent.com/neurodata/ndmg/alex-staging/templates/ndmg_cloud_participant_new.json'
 participant_templ = 'https://raw.githubusercontent.com/neurodata/ndmg/alex-staging/templates/ndmg_cloud_participant_new.json'
 group_templ = 'https://raw.githubusercontent.com/neurodata/ndmg/alex-staging/templates/ndmg_cloud_group.json'

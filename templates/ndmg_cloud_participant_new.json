@@ -7,7 +7,7 @@
     "containerOverrides": {
         "command": [
             "/data/raw",
-            "/data/outputs",
+            "/tmp/data/outputs",
             "participant",
             "--modality",
             "<MODE>",
