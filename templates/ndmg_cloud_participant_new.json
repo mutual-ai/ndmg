@@ -1,17 +1,15 @@
 {
-    "jobDefinitionName": "ndmgstage",
-    "type": "container",
-    "parameters": {
-        "KeyName": ""
-    },
-    "containerProperties": {
-        "image": "",
-        "vcpus": 0,
-        "memory": 0,
+    "jobName": "<JOBNAME>",
+    "jobQueue": "ndmg-queue",
+    "dependsOn": [],
+    "jobDefinition": "ndmgstage",
+    "parameters": {},
+    "containerOverrides": {
         "command": [
             "/data/raw",
             "/data/outputs",
             "participant",
+            "--modality",
             "<MODE>",
             "--bucket",
             "<BUCKET>",
@@ -19,48 +17,17 @@
             "<PATH>",
             "--participant_label",
             "<SUBJ>",
-            "--push_data",
-            "--stc",
-            "<STC>"
-        ],
-        "jobRoleArn": "",
-        "volumes": [
-            {
-                "host": {
-                    "sourcePath": ""
-                },
-                "name": ""
-            }
+            "--push_data"
         ],
         "environment": [
             {
-                "name": "",
-                "value": ""
-            }
-        ],
-        "mountPoints": [
+                "name": "AWS_ACCESS_KEY_ID",
+                "value": "<KEYID>"
+            },
             {
-                "containerPath": "",
-                "readOnly": true,
-                "sourceVolume": ""
+                "name": "AWS_SECRET_ACCESS_KEY",
+                "value": "<SECRET>"
             }
-        ],
-        "readonlyRootFilesystem": true,
-        "privileged": true,
-        "ulimits": [
-            {
-                "hardLimit": 0,
-                "name": "",
-                "softLimit": 0
-            }
-        ],
-        "user": "",
-        "instanceType": ""
-    },
-    "retryStrategy": {
-        "attempts": 0
-    },
-    "timeout": {
-        "attemptDurationSeconds": 0
+        ]
     }
 }

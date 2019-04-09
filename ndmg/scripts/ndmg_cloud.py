@@ -33,7 +33,7 @@ import json
 import ast
 
 # participant_templ = 'https://raw.githubusercontent.com/neurodata/ndmg/alex-staging/templates/ndmg_cloud_participant_new.json'
-participant_templ = 'https://raw.githubusercontent.com/neurodata/ndmg/alex-staging/templates/ndmg_cloud_participant.json'
+participant_templ = 'https://raw.githubusercontent.com/neurodata/ndmg/alex-staging/templates/ndmg_cloud_participant_new.json'
 group_templ = 'https://raw.githubusercontent.com/neurodata/ndmg/alex-staging/templates/ndmg_cloud_group.json'
 
 
@@ -176,11 +176,11 @@ def create_json(bucket, path, threads, jobdir, group=False, credentials=None,
     return jobs
 
 # #  FOR DEBUGGING  # 
-bucket = 'ndmg-data'
-path = 'HNU1t'
-jobdir = '/Users/alex/output'
-threads = crawl_bucket(bucket, path)
-create_json('ndmg-data', 'HNU1t', threads, jobdir)
+# bucket = 'ndmg-data'
+# path = 'HNU1t'
+# jobdir = '/Users/alex/output'
+# threads = crawl_bucket(bucket, path)
+# create_json('ndmg-data', 'HNU1t', threads, jobdir)
 # --------------- #
 
 # def create_json(bucket, path, threads, jobdir, group=False, credentials=None,
