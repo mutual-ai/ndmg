@@ -346,14 +346,20 @@ def main():
 
     if level == 'participant':
         if buck is not None and remo is not None:
-            print("Retrieving data from S3...")
+            print("Retrieving data from S3... alex")
             if subj is not None:
-                [s3_get_data(buck, remo, inDir, s, True) for s in subj]
-            else:
+                for sub in subj:
+                    if sesh is not None:
+                        tpath = op.join(remo, 'sub-{}'.format(sub), 'ses-{}'.format(sesh))
+                        tindir = op.join(inDir, 'sub-{}'.format(sub), 'ses-{}'.format(sesh))
+                    else:
+                        tpath = op.join(remo, 'sub-{}'.format(sub))
+                        tindir = op.join(inDir, 'sub-{}'.format(sub))
+                s3_get_data(buck, tpath, tindir, public=creds)
+            else: 
                 s3_get_data(buck, remo, inDir, public=creds)
-        modif = 'ndmg_{}'.format(ndmg.version.replace('.', '-'))
-        session_level(inDir, outDir, subj, sesh, task, run, debug,
-                      modality, nproc, big, stc)
+        modif = 'ndmg'
+        session_level(inDir, outDir, subj, sesh, debug)
 
     elif level == 'group':
         gpath = op.join(inDir, modality, 'roi-connectomes')

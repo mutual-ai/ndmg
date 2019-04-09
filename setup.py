@@ -3,15 +3,11 @@ from Cython.Distutils import build_ext
 from Cython.Build import cythonize
 
 
-ext_modules = cythonize(
-    Extension(
-        "ndmg.graph.zindex",  # the extension name
-        sources=["ndmg/graph/zindex.pyx"],
-        include_dirs=["."],
-        language="c",
-    )
-)
-VERSION = "0.1.2"
+ext_modules = cythonize(Extension("ndmg.graph.zindex", # the extension name
+                                  sources=["ndmg/graph/zindex.pyx"],
+                                  include_dirs=['.'],
+                                  language="c"))
+VERSION="0.1.2"
 
 setup(
     name="ndmg",
