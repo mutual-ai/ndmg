@@ -43,7 +43,7 @@ from functools import partial
 import traceback
 
 
-atlas_dir = '/ndmg_atlases'  # This location bc it is convenient for containers
+atlas_dir = '/tmp/ndmg_atlases'  # This location bc it is convenient for containers
 
 # Data structure:
 # sub-<subject id>/
@@ -341,8 +341,8 @@ def main():
     dataset = result.dataset
     hemi = result.hemispheres
 
-    creds = bool(os.getenv("AWS_ACCESS_KEY_ID", 0) and
-                 os.getenv("AWS_SECRET_ACCESS_KEY", 0))
+    creds = not bool(os.getenv("AWS_ACCESS_KEY_ID", 0) and
+                 os.getenv("AWS_SECRET_ACCESS_KEY", 0))  # True if you have access keys, False if not
 
     if level == 'participant':
         if buck is not None and remo is not None:
@@ -350,8 +350,8 @@ def main():
             if subj is not None:
                 for sub in subj:
                     if sesh is not None:
-                        tpath = op.join(remo, 'sub-{}'.format(sub), 'ses-{}'.format(sesh))
-                        tindir = op.join(inDir, 'sub-{}'.format(sub), 'ses-{}'.format(sesh))
+                        tpath = op.join(remo, 'sub-{}'.format(sub), 'ses-{}'.format(sesh[0]))
+                        tindir = op.join(inDir, 'sub-{}'.format(sub), 'ses-{}'.format(sesh[0]))
                     else:
                         tpath = op.join(remo, 'sub-{}'.format(sub))
                         tindir = op.join(inDir, 'sub-{}'.format(sub))
